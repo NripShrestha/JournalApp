@@ -20,8 +20,67 @@ namespace JournalApp.Data
         {
             await _database.CreateTableAsync<Mood>();
             await _database.CreateTableAsync<JournalEntry>();
+            await _database.CreateTableAsync<JournalEntryMood>();
+
 
             await SeedMoodsIfEmpty();
+        }
+
+        // =========================
+        // JOURNAL MOODS
+        // =========================
+
+        public async Task<List<Mood>> GetMoodsForEntryAsync(int journalEntryId)
+        {
+            // Step 1: Get mood IDs linked to the journal entry
+            var moodLinks = await _database.Table<JournalEntryMood>()
+                .Where(jm => jm.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            if (moodLinks.Count == 0)
+                return new List<Mood>();
+
+            var moodIds = moodLinks.Select(jm => jm.MoodId).ToList();
+
+            // Step 2: Fetch moods by ID
+            var moods = await _database.Table<Mood>()
+                .Where(m => moodIds.Contains(m.Id))
+                .ToListAsync();
+
+            return moods;
+        }
+
+        public async Task SaveEntryMoodsAsync(
+            int journalEntryId,
+            int primaryMoodId,
+            List<int> secondaryMoodIds)
+        {
+            // Remove existing moods
+            var existing = await _database.Table<JournalEntryMood>()
+                .Where(jm => jm.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            foreach (var item in existing)
+                await _database.DeleteAsync(item);
+
+            // Insert primary mood
+            await _database.InsertAsync(new JournalEntryMood
+            {
+                JournalEntryId = journalEntryId,
+                MoodId = primaryMoodId,
+                IsPrimary = true
+            });
+
+            // Insert secondary moods (max 2)
+            foreach (var moodId in secondaryMoodIds.Take(2))
+            {
+                await _database.InsertAsync(new JournalEntryMood
+                {
+                    JournalEntryId = journalEntryId,
+                    MoodId = moodId,
+                    IsPrimary = false
+                });
+            }
         }
 
         // =========================

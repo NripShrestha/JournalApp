@@ -4,6 +4,37 @@
 
 <h1>Journal</h1>
 
+@if (allMoods == null)
+{
+    <p>Loading moods...</p>
+}
+else
+{
+    <h4>Primary Mood</h4>
+    <select @bind="selectedPrimaryMoodId">
+        <option value="0">-- Select Primary Mood --</option>
+        @foreach (var mood in allMoods)
+        {
+            <option value="@mood.Id">
+                @mood.Name (@mood.Category)
+            </option>
+        }
+    </select>
+
+    <h4 class="mt-3">Secondary Moods (max 2)</h4>
+    @foreach (var mood in allMoods)
+    {
+        <div>
+            <input type="checkbox"
+                   checked="@selectedSecondaryMoodIds.Contains(mood.Id)"
+                   @onchange="(e) => ToggleSecondaryMood(mood.Id, (bool)e.Value!)" />
+            @mood.Name
+        </div>
+    }
+}
+
+<br />
+
 <button class="btn btn-primary" @onclick="SaveTodayEntry">
     Save Today's Entry
 </button>
@@ -24,46 +55,86 @@ else
         @foreach (var entry in entries)
         {
             <li>
-                <strong>@entry.Title</strong>
-                <br />
-                <small>@entry.CreatedAt</small>
+                <strong>@entry.Title</strong><br />
+                <small>@entry.CreatedAt</small><br />
+
+                <button class="btn btn-sm btn-danger mt-1"
+                        @onclick="() => DeleteEntry(entry)">
+                    Delete
+                </button>
             </li>
-            <li>
-   
-    <button class="btn btn-sm btn-danger"
-            @onclick="() => DeleteEntry(entry)">
-        Delete
-    </button>
-</li>
+            <hr />
         }
     </ul>
 }
 
 @code {
+    private List<Mood>? allMoods;
     private List<JournalEntry>? entries;
+
+    private int selectedPrimaryMoodId;
+    private List<int> selectedSecondaryMoodIds = new();
 
     protected override async Task OnInitializedAsync()
     {
+        allMoods = await Database.GetMoodsAsync();
         entries = await Database.GetEntriesAsync();
     }
 
     private async Task SaveTodayEntry()
     {
+        if (selectedPrimaryMoodId == 0)
+        {
+            return; // Primary mood required
+        }
+
         var today = DateTime.Today;
 
-        await Database.SaveEntryAsync(new JournalEntry
+        var entry = new JournalEntry
         {
             Title = "Today's Entry",
             Content = "This is today's journal entry.",
             EntryDate = today
-        });
+        };
+
+        await Database.SaveEntryAsync(entry);
+
+        var savedEntry = await Database.GetEntryByDateAsync(today);
+
+        if (savedEntry != null)
+        {
+            await Database.SaveEntryMoodsAsync(
+                savedEntry.Id,
+                selectedPrimaryMoodId,
+                selectedSecondaryMoodIds
+            );
+        }
 
         entries = await Database.GetEntriesAsync();
-    }
-    private async Task DeleteEntry(JournalEntry entry)
-{
-    await Database.DeleteEntryAsync(entry);
-    entries = await Database.GetEntriesAsync();
-}
 
+        selectedPrimaryMoodId = 0;
+        selectedSecondaryMoodIds.Clear();
+    }
+
+    private async Task DeleteEntry(JournalEntry entry)
+    {
+        await Database.DeleteEntryAsync(entry);
+        entries = await Database.GetEntriesAsync();
+    }
+
+    private void ToggleSecondaryMood(int moodId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedSecondaryMoodIds.Contains(moodId)
+                && selectedSecondaryMoodIds.Count < 2)
+            {
+                selectedSecondaryMoodIds.Add(moodId);
+            }
+        }
+        else
+        {
+            selectedSecondaryMoodIds.Remove(moodId);
+        }
+    }
 }
