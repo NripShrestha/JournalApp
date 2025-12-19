@@ -1,0 +1,32 @@
+﻿@page "/moods"
+@using JournalApp.Models
+@inject JournalApp.Data.AppDatabase Database
+
+<h1>Moods</h1>
+
+@if (moods == null)
+{
+    <p>Loading moods...</p>
+}
+else if (moods.Count == 0)
+{
+    <p>No moods found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var mood in moods)
+        {
+            <li>@mood.Name (@mood.Category)</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Mood>? moods;
+
+    protected override async Task OnInitializedAsync()
+    {
+        moods = await Database.GetMoodsAsync();
+    }
+}

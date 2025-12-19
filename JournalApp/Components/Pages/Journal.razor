@@ -1,0 +1,54 @@
+﻿@page "/journal"
+@using JournalApp.Models
+@inject JournalApp.Data.AppDatabase Database
+
+<h1>Journal</h1>
+
+<button class="btn btn-primary" @onclick="AddTestEntry">
+    Add Test Entry
+</button>
+
+<hr />
+
+@if (entries == null)
+{
+    <p>Loading entries...</p>
+}
+else if (entries.Count == 0)
+{
+    <p>No journal entries yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var entry in entries)
+        {
+            <li>
+                <strong>@entry.Title</strong>
+                <br />
+                <small>@entry.CreatedAt</small>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<JournalEntry>? entries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await Database.GetEntriesAsync();
+    }
+
+    private async Task AddTestEntry()
+    {
+        await Database.AddEntryAsync(new JournalEntry
+        {
+            Title = "Test Entry",
+            Content = "This is a test journal entry.",
+            CreatedAt = DateTime.Now
+        });
+
+        entries = await Database.GetEntriesAsync();
+    }
+}
