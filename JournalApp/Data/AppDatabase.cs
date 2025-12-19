@@ -22,9 +22,13 @@ namespace JournalApp.Data
             await _database.CreateTableAsync<JournalEntry>();
             await _database.CreateTableAsync<JournalEntryMood>();
 
+            await _database.CreateTableAsync<Tag>();
+            await _database.CreateTableAsync<JournalEntryTag>();
 
             await SeedMoodsIfEmpty();
+            await SeedTagsIfEmpty();
         }
+
 
         // =========================
         // JOURNAL MOODS
@@ -106,6 +110,29 @@ namespace JournalApp.Data
                 });
             }
         }
+        private async Task SeedTagsIfEmpty()
+        {
+            var count = await _database.Table<Tag>().CountAsync();
+            if (count == 0)
+            {
+                await _database.InsertAllAsync(new[]
+                {
+            new Tag { Name = "Work", IsPredefined = true },
+            new Tag { Name = "Health", IsPredefined = true },
+            new Tag { Name = "Travel", IsPredefined = true },
+            new Tag { Name = "Family", IsPredefined = true },
+            new Tag { Name = "Fitness", IsPredefined = true },
+            new Tag { Name = "Study", IsPredefined = true }
+        });
+            }
+        }
+        public Task<List<Tag>> GetTagsAsync()
+        {
+            return _database.Table<Tag>()
+                .OrderBy(t => t.Name)
+                .ToListAsync();
+        }
+
 
         // =========================
         // JOURNAL
@@ -137,6 +164,29 @@ namespace JournalApp.Data
                 await _database.UpdateAsync(existing);
             }
         }
+        public async Task SaveEntryTagsAsync(
+    int journalEntryId,
+    List<int> tagIds)
+        {
+            // Remove existing tags
+            var existing = await _database.Table<JournalEntryTag>()
+                .Where(jt => jt.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            foreach (var item in existing)
+                await _database.DeleteAsync(item);
+
+            // Insert new tags
+            foreach (var tagId in tagIds)
+            {
+                await _database.InsertAsync(new JournalEntryTag
+                {
+                    JournalEntryId = journalEntryId,
+                    TagId = tagId
+                });
+            }
+        }
+
 
         // Delete entry by id
         public Task DeleteEntryAsync(JournalEntry entry)

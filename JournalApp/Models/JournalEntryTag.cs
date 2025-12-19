@@ -7,15 +7,13 @@ using SQLite;
 
 namespace JournalApp.Models
 {
-    public class Tag
+    public class JournalEntryTag
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
 
-        public string Name { get; set; } = string.Empty;
+        public int JournalEntryId { get; set; }
 
-        // Predefined tags vs user-created (future-proofing)
-        public bool IsPredefined { get; set; }
+        public int TagId { get; set; }
     }
 }
-
