@@ -51,6 +51,39 @@ namespace JournalApp.Data
         // =========================
         // JOURNAL
         // =========================
+        // Get entry for a specific date (one per day rule)
+        public Task<JournalEntry?> GetEntryByDateAsync(DateTime date)
+        {
+            return _database.Table<JournalEntry>()
+                .Where(e => e.EntryDate == date.Date)
+                .FirstOrDefaultAsync();
+        }
+
+        // Insert or update today's entry
+        public async Task SaveEntryAsync(JournalEntry entry)
+        {
+            var existing = await GetEntryByDateAsync(entry.EntryDate);
+
+            if (existing == null)
+            {
+                entry.CreatedAt = DateTime.Now;
+                entry.UpdatedAt = DateTime.Now;
+                await _database.InsertAsync(entry);
+            }
+            else
+            {
+                existing.Title = entry.Title;
+                existing.Content = entry.Content;
+                existing.UpdatedAt = DateTime.Now;
+                await _database.UpdateAsync(existing);
+            }
+        }
+
+        // Delete entry by id
+        public Task DeleteEntryAsync(JournalEntry entry)
+        {
+            return _database.DeleteAsync(entry);
+        }
 
         public Task<List<JournalEntry>> GetEntriesAsync()
         {

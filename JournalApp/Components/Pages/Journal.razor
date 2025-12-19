@@ -4,8 +4,8 @@
 
 <h1>Journal</h1>
 
-<button class="btn btn-primary" @onclick="AddTestEntry">
-    Add Test Entry
+<button class="btn btn-primary" @onclick="SaveTodayEntry">
+    Save Today's Entry
 </button>
 
 <hr />
@@ -28,6 +28,13 @@ else
                 <br />
                 <small>@entry.CreatedAt</small>
             </li>
+            <li>
+   
+    <button class="btn btn-sm btn-danger"
+            @onclick="() => DeleteEntry(entry)">
+        Delete
+    </button>
+</li>
         }
     </ul>
 }
@@ -40,15 +47,23 @@ else
         entries = await Database.GetEntriesAsync();
     }
 
-    private async Task AddTestEntry()
+    private async Task SaveTodayEntry()
     {
-        await Database.AddEntryAsync(new JournalEntry
+        var today = DateTime.Today;
+
+        await Database.SaveEntryAsync(new JournalEntry
         {
-            Title = "Test Entry",
-            Content = "This is a test journal entry.",
-            CreatedAt = DateTime.Now
+            Title = "Today's Entry",
+            Content = "This is today's journal entry.",
+            EntryDate = today
         });
 
         entries = await Database.GetEntriesAsync();
     }
+    private async Task DeleteEntry(JournalEntry entry)
+{
+    await Database.DeleteEntryAsync(entry);
+    entries = await Database.GetEntriesAsync();
+}
+
 }
