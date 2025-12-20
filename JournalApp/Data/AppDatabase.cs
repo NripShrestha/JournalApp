@@ -205,5 +205,23 @@ namespace JournalApp.Data
         {
             return _database.InsertAsync(entry);
         }
+        public async Task<List<Tag>> GetTagsForEntryAsync(int journalEntryId)
+        {
+            // Step 1: Get tag IDs linked to this entry
+            var tagLinks = await _database.Table<JournalEntryTag>()
+                .Where(jt => jt.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            if (tagLinks.Count == 0)
+                return new List<Tag>();
+
+            var tagIds = tagLinks.Select(jt => jt.TagId).ToList();
+
+            // Step 2: Fetch actual tags
+            return await _database.Table<Tag>()
+                .Where(t => tagIds.Contains(t.Id))
+                .ToListAsync();
+        }
+
     }
 }

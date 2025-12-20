@@ -2,31 +2,57 @@
 @using JournalApp.Models
 @inject JournalApp.Data.AppDatabase Database
 
-<h1>Moods</h1>
+<h1>Mood History</h1>
 
-@if (moods == null)
+@if (entries == null)
 {
-    <p>Loading moods...</p>
+    <p>Loading mood history...</p>
 }
-else if (moods.Count == 0)
+else if (entries.Count == 0)
 {
-    <p>No moods found.</p>
+    <p>No mood history available.</p>
 }
 else
 {
     <ul>
-        @foreach (var mood in moods)
+        @foreach (var entry in entries)
         {
-            <li>@mood.Name (@mood.Category)</li>
+            <li>
+                <strong>@entry.EntryDate.ToShortDateString()</strong>
+
+                <div>
+                    @if (entryMoods.TryGetValue(entry.Id, out var moods) && moods.Any())
+                    {
+                        <span>@string.Join(", ", moods.Select(m => m.Name))</span>
+                    }
+                    else
+                    {
+                        <span>No mood recorded</span>
+                    }
+                </div>
+            </li>
+            <hr />
         }
     </ul>
 }
 
 @code {
-    private List<Mood>? moods;
+    private List<JournalEntry>? entries;
+    private Dictionary<int, List<Mood>> entryMoods = new();
 
     protected override async Task OnInitializedAsync()
     {
-        moods = await Database.GetMoodsAsync();
+        await LoadMoodHistory();
+    }
+
+    private async Task LoadMoodHistory()
+    {
+        entries = await Database.GetEntriesAsync();
+        entryMoods.Clear();
+
+        foreach (var entry in entries)
+        {
+            entryMoods[entry.Id] = await Database.GetMoodsForEntryAsync(entry.Id);
+        }
     }
 }

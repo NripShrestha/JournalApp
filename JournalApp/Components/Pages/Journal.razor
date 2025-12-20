@@ -4,36 +4,52 @@
 
 <h1>Journal</h1>
 
-@if (allMoods == null)
-{
-    <p>Loading moods...</p>
-}
-else
+@if (allMoods != null)
 {
     <h4>Primary Mood</h4>
-    <select @bind="selectedPrimaryMoodId">
-        <option value="0">-- Select Primary Mood --</option>
-        @foreach (var mood in allMoods)
-        {
-            <option value="@mood.Id">
-                @mood.Name (@mood.Category)
-            </option>
-        }
-    </select>
+    @foreach (var mood in allMoods)
+    {
+        <div>
+            <input type="radio"
+                   name="primaryMood"
+                   checked="@(selectedPrimaryMoodId == mood.Id)"
+                   @onchange="() => selectedPrimaryMoodId = mood.Id" />
+            @mood.Name
+        </div>
+    }
 
-    <h4 class="mt-3">Secondary Moods (max 2)</h4>
+    <h4>Secondary Moods (up to 2)</h4>
     @foreach (var mood in allMoods)
     {
         <div>
             <input type="checkbox"
                    checked="@selectedSecondaryMoodIds.Contains(mood.Id)"
-                   @onchange="(e) => ToggleSecondaryMood(mood.Id, (bool)e.Value!)" />
+                   disabled="@( !selectedSecondaryMoodIds.Contains(mood.Id)
+                                      && selectedSecondaryMoodIds.Count >= 2 )"
+           @onchange="(e) => ToggleSecondaryMood(mood.Id, (bool)e.Value!)" />
+
             @mood.Name
         </div>
     }
 }
 
-<br />
+<hr />
+
+@if (allTags != null)
+{
+    <h4>Tags</h4>
+    @foreach (var tag in allTags)
+    {
+        <div>
+            <input type="checkbox"
+                   checked="@selectedTagIds.Contains(tag.Id)"
+                   @onchange="(e) => ToggleTag(tag.Id, (bool)e.Value!)" />
+            @tag.Name
+        </div>
+    }
+}
+
+<hr />
 
 <button class="btn btn-primary" @onclick="SaveTodayEntry">
     Save Today's Entry
@@ -56,7 +72,31 @@ else
         {
             <li>
                 <strong>@entry.Title</strong><br />
-                <small>@entry.CreatedAt</small><br />
+                <small>@entry.CreatedAt</small>
+
+                <div>
+                    <em>Moods:</em>
+                    @if (entryMoods.TryGetValue(entry.Id, out var moods) && moods.Any())
+                    {
+                        <span>@string.Join(", ", moods.Select(m => m.Name))</span>
+                    }
+                    else
+                    {
+                        <span>None</span>
+                    }
+                </div>
+
+
+                <div>
+                    <em>Tags:</em>
+                    @if (entryTags.TryGetValue(entry.Id, out var tags))
+                    {
+                        @foreach (var tag in tags)
+                        {
+                            <span>@tag.Name </span>
+                        }
+                    }
+                </div>
 
                 <button class="btn btn-sm btn-danger mt-1"
                         @onclick="() => DeleteEntry(entry)">
@@ -69,72 +109,101 @@ else
 }
 
 @code {
-    private List<Mood>? allMoods;
     private List<JournalEntry>? entries;
+    private List<Tag>? allTags;
+    private List<Mood>? allMoods;
 
     private int selectedPrimaryMoodId;
     private List<int> selectedSecondaryMoodIds = new();
+    private List<int> selectedTagIds = new();
+
+    private Dictionary<int, List<Tag>> entryTags = new();
+    private Dictionary<int, List<Mood>> entryMoods = new();
 
     protected override async Task OnInitializedAsync()
     {
+        allTags = await Database.GetTagsAsync();
         allMoods = await Database.GetMoodsAsync();
+        await LoadEntries();
+    }
+
+    private async Task LoadEntries()
+    {
         entries = await Database.GetEntriesAsync();
+
+        entryTags.Clear();
+        entryMoods.Clear();
+
+        foreach (var entry in entries)
+        {
+            entryTags[entry.Id] = await Database.GetTagsForEntryAsync(entry.Id);
+            entryMoods[entry.Id] = await Database.GetMoodsForEntryAsync(entry.Id);
+        }
     }
 
     private async Task SaveTodayEntry()
     {
-        if (selectedPrimaryMoodId == 0)
-        {
-            return; // Primary mood required
-        }
-
         var today = DateTime.Today;
 
-        var entry = new JournalEntry
+        await Database.SaveEntryAsync(new JournalEntry
         {
             Title = "Today's Entry",
             Content = "This is today's journal entry.",
             EntryDate = today
-        };
-
-        await Database.SaveEntryAsync(entry);
+        });
 
         var savedEntry = await Database.GetEntryByDateAsync(today);
 
         if (savedEntry != null)
         {
-            await Database.SaveEntryMoodsAsync(
-                savedEntry.Id,
-                selectedPrimaryMoodId,
-                selectedSecondaryMoodIds
-            );
-        }
+            await Database.SaveEntryTagsAsync(savedEntry.Id, selectedTagIds);
 
-        entries = await Database.GetEntriesAsync();
+            if (selectedPrimaryMoodId != 0)
+            {
+                await Database.SaveEntryMoodsAsync(
+                    savedEntry.Id,
+                    selectedPrimaryMoodId,
+                    selectedSecondaryMoodIds
+                );
+            }
+        }
 
         selectedPrimaryMoodId = 0;
         selectedSecondaryMoodIds.Clear();
-    }
+        selectedTagIds.Clear();
 
-    private async Task DeleteEntry(JournalEntry entry)
-    {
-        await Database.DeleteEntryAsync(entry);
-        entries = await Database.GetEntriesAsync();
+        await LoadEntries();
     }
 
     private void ToggleSecondaryMood(int moodId, bool isChecked)
     {
         if (isChecked)
         {
-            if (!selectedSecondaryMoodIds.Contains(moodId)
-                && selectedSecondaryMoodIds.Count < 2)
-            {
+            if (!selectedSecondaryMoodIds.Contains(moodId) && selectedSecondaryMoodIds.Count < 2)
                 selectedSecondaryMoodIds.Add(moodId);
-            }
         }
         else
         {
             selectedSecondaryMoodIds.Remove(moodId);
         }
+    }
+
+    private void ToggleTag(int tagId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedTagIds.Contains(tagId))
+                selectedTagIds.Add(tagId);
+        }
+        else
+        {
+            selectedTagIds.Remove(tagId);
+        }
+    }
+
+    private async Task DeleteEntry(JournalEntry entry)
+    {
+        await Database.DeleteEntryAsync(entry);
+        await LoadEntries();
     }
 }
