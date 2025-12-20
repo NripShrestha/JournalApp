@@ -1,4 +1,23 @@
 ﻿@page "/"
+@inject NavigationManager Nav
 
-<h1>Home</h1>
-<p>Welcome to JournalApp.</p>
+<section class="home-hero">
+    <h1>A Quiet Place for your Thoughts</h1>
+
+    <p>
+        Escape the noise of the digital world.
+        Simple, secure, and serene journaling for your every day.
+    </p>
+
+    <button class="primary-btn"
+            @onclick="GoToJournal">
+        Start Journaling
+    </button>
+</section>
+
+@code {
+    private void GoToJournal()
+    {
+        Nav.NavigateTo("/journal");
+    }
+}

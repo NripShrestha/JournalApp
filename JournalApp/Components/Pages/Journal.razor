@@ -2,116 +2,157 @@
 @using JournalApp.Models
 @inject JournalApp.Data.AppDatabase Database
 
-<h1>Journal</h1>
+<div class="journal-container">
+    <div class="journal-grid">
 
-@if (allMoods != null)
-{
-    <h4>Primary Mood</h4>
-    @foreach (var mood in allMoods)
-    {
-        <div>
-            <input type="radio"
-                   name="primaryMood"
-                   checked="@(selectedPrimaryMoodId == mood.Id)"
-                   @onchange="() => selectedPrimaryMoodId = mood.Id" />
-            @mood.Name
-        </div>
-    }
+        <!-- ================= HISTORY ================= -->
+        <aside class="history-section">
+            <h2 class="section-title">Journal History</h2>
 
-    <h4>Secondary Moods (up to 2)</h4>
-    @foreach (var mood in allMoods)
-    {
-        <div>
-            <input type="checkbox"
-                   checked="@selectedSecondaryMoodIds.Contains(mood.Id)"
-                   disabled="@( !selectedSecondaryMoodIds.Contains(mood.Id)
-                                      && selectedSecondaryMoodIds.Count >= 2 )"
-           @onchange="(e) => ToggleSecondaryMood(mood.Id, (bool)e.Value!)" />
-
-            @mood.Name
-        </div>
-    }
-}
-
-<hr />
-
-@if (allTags != null)
-{
-    <h4>Tags</h4>
-    @foreach (var tag in allTags)
-    {
-        <div>
-            <input type="checkbox"
-                   checked="@selectedTagIds.Contains(tag.Id)"
-                   @onchange="(e) => ToggleTag(tag.Id, (bool)e.Value!)" />
-            @tag.Name
-        </div>
-    }
-}
-
-<hr />
-
-<button class="btn btn-primary" @onclick="SaveTodayEntry">
-    Save Today's Entry
-</button>
-
-<hr />
-
-@if (entries == null)
-{
-    <p>Loading entries...</p>
-}
-else if (entries.Count == 0)
-{
-    <p>No journal entries yet.</p>
-}
-else
-{
-    <ul>
-        @foreach (var entry in entries)
-        {
-            <li>
-                <strong>@entry.Title</strong><br />
-                <small>@entry.CreatedAt</small>
-
-                <div>
-                    <em>Moods:</em>
-                    @if (entryMoods.TryGetValue(entry.Id, out var moods) && moods.Any())
+            <div class="history-scroll">
+                @if (entries.Count == 0)
+                {
+                    <div class="empty-state">No entries yet.</div>
+                }
+                else
+                {
+                    @foreach (var entry in entries)
                     {
-                        <span>@string.Join(", ", moods.Select(m => m.Name))</span>
-                    }
-                    else
-                    {
-                        <span>None</span>
-                    }
+                        <div class="history-card" @key="entry.Id">
+
+                            <div class="card-pills">
+                                <span class="badge-pill pill-date">
+                                    @entry.CreatedAt.ToString("MMM dd")
+                                </span>
+
+                                @if (entryTags.TryGetValue(entry.Id, out var tags))
+                                {
+                                    foreach (var tag in tags)
+                                    {
+                                        <span class="badge-pill pill-tag">@tag.Name</span>
+                                    }
+                                }
+
+                                @if (entryMoods.TryGetValue(entry.Id, out var moods))
+                                {
+                                    foreach (var mood in moods)
+                                    {
+                                        <span class="badge-pill pill-mood">@mood.Name</span>
+                                    }
+                                }
+                        </div>
+
+                        <h4 class="card-title">@entry.Title</h4>
+
+                        <p class="card-excerpt">
+                            @(entry.Content.Length > 100
+                                                    ? entry.Content.Substring(0, 100) + "..."
+                                                    : entry.Content)
+                    </p>
+
+                            <!-- DELETE BUTTON -->
+                            <button type="button"
+                                    class="card-delete"
+                                    @onclick="async () => await DeleteEntry(entry)"
+                                    @onclick:stopPropagation>
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+                                }
+                }
+            </div>
+        </aside>
+
+        <!-- ================= EDITOR ================= -->
+        <main class="editor-section">
+            <div class="editor-card">
+
+                <div class="input-row">
+                    <label class="editor-label">Title:</label>
+                    <input type="text"
+                           class="title-input"
+                           @bind="entryTitle" />
                 </div>
 
-
-                <div>
-                    <em>Tags:</em>
-                    @if (entryTags.TryGetValue(entry.Id, out var tags))
-                    {
-                        @foreach (var tag in tags)
+                <div class="selection-row">
+                    <div class="selection-label">
+                        <i class="bi bi-emoji-smile"></i> <span>Mood:</span>
+                    </div>
+                    <div class="pill-cloud">
+                        @foreach (var mood in allMoods)
                         {
-                            <span>@tag.Name </span>
+                            <button type="button"
+                                    class="selection-pill @(selectedPrimaryMoodId == mood.Id ? "active" : "")"
+                                    @onclick="() => selectedPrimaryMoodId = mood.Id">
+                                <span class="dot"></span> @mood.Name
+                            </button>
                         }
-                    }
+                    </div>
                 </div>
 
-                <button class="btn btn-sm btn-danger mt-1"
-                        @onclick="() => DeleteEntry(entry)">
-                    Delete
-                </button>
-            </li>
-            <hr />
-        }
-    </ul>
-}
+                <div class="selection-row">
+                    <div class="selection-label">
+                        <span>Secondary Mood:</span>
+                    </div>
+                    <div class="pill-cloud">
+                        @foreach (var mood in allMoods)
+                        {
+                            var isDisabled = !selectedSecondaryMoodIds.Contains(mood.Id)
+                            && selectedSecondaryMoodIds.Count >= 2;
+
+                            <button type="button"
+                                    class="selection-pill @(selectedSecondaryMoodIds.Contains(mood.Id) ? "active" : "") @(isDisabled ? "disabled" : "")"
+                                    disabled="@isDisabled"
+                                    @onclick="() => ToggleSecondaryMood(mood.Id, !selectedSecondaryMoodIds.Contains(mood.Id))">
+                                <span class="dot"></span> @mood.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="selection-row">
+                    <div class="selection-label">
+                        <i class="bi bi-tags"></i> <span>Tags:</span>
+                    </div>
+                    <div class="pill-cloud">
+                        @foreach (var tag in allTags)
+                        {
+                            <button type="button"
+                                    class="selection-pill @(selectedTagIds.Contains(tag.Id) ? "active" : "")"
+                                    @onclick="() => ToggleTag(tag.Id, !selectedTagIds.Contains(tag.Id))">
+                                <span class="dot"></span> @tag.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="textarea-container">
+                    <textarea placeholder="Add description"
+                              @bind="entryContent"></textarea>
+                </div>
+
+                <div class="action-footer">
+                    <button type="button"
+                            class="btn-entry"
+                            @onclick="SaveTodayEntry">
+                        Entry
+                    </button>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+</div>
 
 @code {
-    private List<JournalEntry>? entries;
-    private List<Tag>? allTags;
-    private List<Mood>? allMoods;
+    private string entryTitle = string.Empty;
+    private string entryContent = string.Empty;
+
+    private List<JournalEntry> entries = new();
+    private List<Tag> allTags = new();
+    private List<Mood> allMoods = new();
 
     private int selectedPrimaryMoodId;
     private List<int> selectedSecondaryMoodIds = new();
@@ -147,8 +188,8 @@ else
 
         await Database.SaveEntryAsync(new JournalEntry
         {
-            Title = "Today's Entry",
-            Content = "This is today's journal entry.",
+            Title = entryTitle,
+            Content = entryContent,
             EntryDate = today
         });
 
@@ -168,6 +209,8 @@ else
             }
         }
 
+        entryTitle = string.Empty;
+        entryContent = string.Empty;
         selectedPrimaryMoodId = 0;
         selectedSecondaryMoodIds.Clear();
         selectedTagIds.Clear();
@@ -179,8 +222,11 @@ else
     {
         if (isChecked)
         {
-            if (!selectedSecondaryMoodIds.Contains(moodId) && selectedSecondaryMoodIds.Count < 2)
+            if (!selectedSecondaryMoodIds.Contains(moodId)
+                && selectedSecondaryMoodIds.Count < 2)
+            {
                 selectedSecondaryMoodIds.Add(moodId);
+            }
         }
         else
         {

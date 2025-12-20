@@ -1,19 +1,65 @@
-﻿<nav>
-    <ul>
+﻿@inject IJSRuntime JS
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <img src="images/logo.png" class="nav-logo" />
+        <span class="nav-title">Journify</span>
+    </div>
+
+    <ul class="nav-links">
         <li>
-            <NavLink href="/" Match="NavLinkMatch.All">
+            <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">
                 Home
             </NavLink>
         </li>
-        <div class="nav-item px-3">
-    <NavLink class="nav-link" href="journal">
-        Journal
-    </NavLink>
-</div>
-        <div class="nav-item px-3">
-    <NavLink class="nav-link" href="moods">
-        Moods
-    </NavLink>
-</div>
+
+        <li>
+            <NavLink href="/dashboard" class="nav-link">
+                Dashboard
+            </NavLink>
+        </li>
+
+        <li>
+            <NavLink href="/journal" class="nav-link">
+                Journal
+            </NavLink>
+        </li>
+
+        <li>
+            <NavLink href="/moods" class="nav-link">
+                Mood
+            </NavLink>
+        </li>
     </ul>
+
+    <div class="nav-right theme-toggle">
+        <button type="button"
+                class="theme-btn"
+                title="Toggle theme"
+                @onclick="ToggleTheme">
+            <i class="bi @(isDarkMode ? "bi-moon-stars-fill" : "bi-sun-fill")"></i>
+        </button>
+    </div>
 </nav>
+
+@code {
+    private bool isDarkMode = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("document.body.classList.remove", "dark");
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
+
+        if (isDarkMode)
+            await JS.InvokeVoidAsync("document.body.classList.add", "dark");
+        else
+            await JS.InvokeVoidAsync("document.body.classList.remove", "dark");
+    }
+}

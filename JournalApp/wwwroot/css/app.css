@@ -1,17 +1,405 @@
-﻿nav {
-    padding: 1rem;
-    border-right: 1px solid #ccc;
+﻿/* ===== Layout (ORIGINAL - UNTOUCHED) ===== */
+body {
+    background-color: #EDEDED;
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-    nav ul {
-        list-style: none;
-        padding: 0;
+.layout-root {
+    min-height: 100vh;
+}
+
+.page-content {
+    padding-top: 80px;
+}
+
+/* ===== Navbar (ORIGINAL - UNTOUCHED) ===== */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    z-index: 1000;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-logo {
+    width: 32px;
+    height: 32px;
+}
+
+.nav-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+}
+
+    .nav-link.active {
+        border-bottom: 2px solid #1f2937;
+        color: #1f2937;
     }
 
-    nav li {
-        margin-bottom: 0.5rem;
+.nav-right {
+    font-size: 1.2rem;
+}
+
+/* ===== Home Page (ORIGINAL - UNTOUCHED) ===== */
+.home-hero {
+    align-content: center;
+    text-align: center;
+    margin-top: 120px;
+}
+
+    .home-hero h1 {
+        font-size: 4rem;
+        font-weight: 700;
     }
 
-    nav a {
-        text-decoration: none;
+    .home-hero p {
+        max-width: 600px;
+        margin: 1rem auto 2rem;
+        font-size: 1.4rem;
+        color: #555;
     }
+
+.primary-btn {
+    background: #1f2937;
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+    .primary-btn:hover {
+        opacity: 0.9;
+    }
+
+/* ===== JOURNAL FIGMA DESIGN SECTION ===== */
+
+.journal-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+.journal-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* History Section */
+.history-section {
+    background: white;
+    border-radius: 40px;
+    padding: 30px 20px;
+    height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 25px;
+    padding-left: 10px;
+}
+
+.history-scroll {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.history-card {
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+/* Flexible pill container for multiple moods/tags */
+.card-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.badge-pill {
+    font-size: 10px;
+    padding: 3px 12px;
+    border-radius: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.pill-date {
+    background: #E6E6E6;
+    color: #666;
+}
+
+.pill-tag {
+    background: #D9D5FF;
+    color: #6B63FF;
+}
+
+.pill-mood {
+    background: #FFEBD6;
+    color: #D68C3E;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.card-excerpt {
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.4;
+}
+
+.card-delete {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: #f5f5f5;
+    color: #e25555;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+    .card-delete:hover {
+        background: #ffe5e5;
+        color: #d10000;
+        opacity: 1;
+    }
+
+
+/* Editor Section */
+.editor-section {
+    background: white;
+    border-radius: 40px;
+    padding: 50px;
+    min-height: calc(100vh - 140px);
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.editor-label {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.title-input {
+    flex-grow: 1;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 1.2rem;
+}
+
+.selection-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.selection-label {
+    min-width: 160px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pill-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.selection-pill {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+    .selection-pill .dot {
+        height: 8px;
+        width: 8px;
+        background-color: #E0E0E0;
+        border-radius: 50%;
+    }
+
+    .selection-pill.active {
+        border-color: #4DAFFF;
+        background: #f0f8ff;
+    }
+
+        .selection-pill.active .dot {
+            background-color: #4DAFFF;
+        }
+
+.textarea-container textarea {
+    width: 100%;
+    height: 350px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 20px;
+    font-size: 1.1rem;
+    resize: none;
+}
+
+.btn-entry {
+    background-color: #3EB1FF;
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* ===== Theme Toggle Icons ===== */
+.theme-toggle {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: #444;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .theme-btn:hover {
+        background: #f0f0f0;
+        color: #1f2937;
+    }
+
+/* ===== DARK MODE ===== */
+body.dark {
+    background-color: #121212;
+    color: #e5e5e5;
+}
+
+    /* Navbar */
+    body.dark .top-nav {
+        background: #1c1c1c;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    body.dark .nav-link {
+        color: #cfcfcf;
+    }
+
+        body.dark .nav-link.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+    /* Cards & Sections */
+    body.dark .history-section,
+    body.dark .editor-section {
+        background: #1a1a1a;
+    }
+
+    body.dark .history-card {
+        border-color: #2a2a2a;
+    }
+
+    /* Pills */
+    body.dark .pill-date {
+        background: #2a2a2a;
+        color: #aaa;
+    }
+
+    body.dark .pill-tag {
+        background: #2e2b52;
+        color: #b8b2ff;
+    }
+
+    body.dark .pill-mood {
+        background: #3b2f1f;
+        color: #ffcb8a;
+    }
+
+    /* Inputs */
+    body.dark .title-input,
+    body.dark textarea {
+        background: #121212;
+        color: #e5e5e5;
+        border-color: #444;
+    }
+
+    /* Buttons */
+    body.dark .btn-entry {
+        background-color: #4dafff;
+    }
+
+    body.dark .theme-btn {
+        color: #ddd;
+    }
+
+        body.dark .theme-btn:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
