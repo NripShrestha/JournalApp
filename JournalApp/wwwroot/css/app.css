@@ -120,7 +120,7 @@ body {
     background: white;
     border-radius: 40px;
     padding: 30px 20px;
-    height: calc(100vh - 140px);
+    min-height: calc(100vh - 106px);
     display: flex;
     flex-direction: column;
 }
@@ -403,3 +403,4 @@ body.dark {
             background: #2a2a2a;
             color: #fff;
         }
+

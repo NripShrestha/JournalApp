@@ -18,7 +18,10 @@
                 {
                     @foreach (var entry in entries)
                     {
-                        <div class="history-card" @key="entry.Id">
+                        <div class="history-card"
+                             @key="entry.Id"
+                             @onclick="() => EditEntry(entry)"
+                             style="cursor: pointer;">
 
                             <div class="card-pills">
                                 <span class="badge-pill pill-date">
@@ -40,15 +43,15 @@
                                         <span class="badge-pill pill-mood">@mood.Name</span>
                                     }
                                 }
-                        </div>
+                            </div>
 
-                        <h4 class="card-title">@entry.Title</h4>
+                            <h4 class="card-title">@entry.Title</h4>
 
-                        <p class="card-excerpt">
-                            @(entry.Content.Length > 100
-                                                    ? entry.Content.Substring(0, 100) + "..."
-                                                    : entry.Content)
-                    </p>
+                            <p class="card-excerpt">
+                                @(entry.Content.Length > 100
+                                    ? entry.Content.Substring(0, 100) + "..."
+                                    : entry.Content)
+                            </p>
 
                             <!-- DELETE BUTTON -->
                             <button type="button"
@@ -59,7 +62,7 @@
                             </button>
 
                         </div>
-                                }
+                    }
                 }
             </div>
         </aside>
@@ -99,7 +102,7 @@
                         @foreach (var mood in allMoods)
                         {
                             var isDisabled = !selectedSecondaryMoodIds.Contains(mood.Id)
-                            && selectedSecondaryMoodIds.Count >= 2;
+                                && selectedSecondaryMoodIds.Count >= 2;
 
                             <button type="button"
                                     class="selection-pill @(selectedSecondaryMoodIds.Contains(mood.Id) ? "active" : "") @(isDisabled ? "disabled" : "")"
@@ -136,8 +139,18 @@
                     <button type="button"
                             class="btn-entry"
                             @onclick="SaveTodayEntry">
-                        Entry
+                        @(editingEntry != null ? "Update Entry" : "Create Entry")
                     </button>
+
+                    @if (editingEntry != null)
+                    {
+                        <button type="button"
+                                class="btn-entry"
+                                style="background-color: #6c757d; margin-left: 10px;"
+                                @onclick="ClearForm">
+                            Cancel
+                        </button>
+                    }
                 </div>
 
             </div>
@@ -149,6 +162,9 @@
 @code {
     private string entryTitle = string.Empty;
     private string entryContent = string.Empty;
+
+    // Track which entry we're editing
+    private JournalEntry? editingEntry = null;
 
     private List<JournalEntry> entries = new();
     private List<Tag> allTags = new();
@@ -182,40 +198,95 @@
         }
     }
 
+    // Load entry for editing
+    private async Task EditEntry(JournalEntry entry)
+    {
+        editingEntry = entry;
+        entryTitle = entry.Title;
+        entryContent = entry.Content;
+
+        // Load tags
+        var tags = await Database.GetTagsForEntryAsync(entry.Id);
+        selectedTagIds = tags.Select(t => t.Id).ToList();
+
+        // Get the actual primary mood from database
+        var moodLinks = await Database.GetMoodLinksForEntryAsync(entry.Id);
+        var primaryLink = moodLinks.FirstOrDefault(ml => ml.IsPrimary);
+
+        selectedPrimaryMoodId = primaryLink?.MoodId ?? 0;
+        selectedSecondaryMoodIds = moodLinks
+            .Where(ml => !ml.IsPrimary)
+            .Select(ml => ml.MoodId)
+            .ToList();
+    }
+
+    // Handles both create and update
     private async Task SaveTodayEntry()
     {
-        var today = DateTime.Today;
-
-        await Database.SaveEntryAsync(new JournalEntry
+        if (editingEntry != null)
         {
-            Title = entryTitle,
-            Content = entryContent,
-            EntryDate = today
-        });
+            // UPDATE existing entry
+            editingEntry.Title = entryTitle;
+            editingEntry.Content = entryContent;
+            editingEntry.UpdatedAt = DateTime.Now;
 
-        var savedEntry = await Database.GetEntryByDateAsync(today);
+            await Database.UpdateEntryAsync(editingEntry);
 
-        if (savedEntry != null)
-        {
-            await Database.SaveEntryTagsAsync(savedEntry.Id, selectedTagIds);
+            // Update tags and moods
+            await Database.SaveEntryTagsAsync(editingEntry.Id, selectedTagIds);
 
             if (selectedPrimaryMoodId != 0)
             {
                 await Database.SaveEntryMoodsAsync(
-                    savedEntry.Id,
+                    editingEntry.Id,
                     selectedPrimaryMoodId,
                     selectedSecondaryMoodIds
                 );
             }
         }
+        else
+        {
+            // CREATE new entry
+            var today = DateTime.Today;
 
+            await Database.SaveEntryAsync(new JournalEntry
+            {
+                Title = entryTitle,
+                Content = entryContent,
+                EntryDate = today
+            });
+
+            var savedEntry = await Database.GetEntryByDateAsync(today);
+
+            if (savedEntry != null)
+            {
+                await Database.SaveEntryTagsAsync(savedEntry.Id, selectedTagIds);
+
+                if (selectedPrimaryMoodId != 0)
+                {
+                    await Database.SaveEntryMoodsAsync(
+                        savedEntry.Id,
+                        selectedPrimaryMoodId,
+                        selectedSecondaryMoodIds
+                    );
+                }
+            }
+        }
+
+        // Clear form
+        ClearForm();
+        await LoadEntries();
+    }
+
+    // Clear form helper
+    private void ClearForm()
+    {
+        editingEntry = null;
         entryTitle = string.Empty;
         entryContent = string.Empty;
         selectedPrimaryMoodId = 0;
         selectedSecondaryMoodIds.Clear();
         selectedTagIds.Clear();
-
-        await LoadEntries();
     }
 
     private void ToggleSecondaryMood(int moodId, bool isChecked)
@@ -249,6 +320,12 @@
 
     private async Task DeleteEntry(JournalEntry entry)
     {
+        // If we're editing this entry, clear the form
+        if (editingEntry?.Id == entry.Id)
+        {
+            ClearForm();
+        }
+
         await Database.DeleteEntryAsync(entry);
         await LoadEntries();
     }

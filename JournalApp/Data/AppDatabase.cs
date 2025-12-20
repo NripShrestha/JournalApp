@@ -222,6 +222,19 @@ namespace JournalApp.Data
                 .Where(t => tagIds.Contains(t.Id))
                 .ToListAsync();
         }
+        // Get mood links (needed to distinguish primary vs secondary)
+        public async Task<List<JournalEntryMood>> GetMoodLinksForEntryAsync(int journalEntryId)
+        {
+            return await _database.Table<JournalEntryMood>()
+                .Where(jm => jm.JournalEntryId == journalEntryId)
+                .ToListAsync();
+        }
+
+        // Update existing entry
+        public Task UpdateEntryAsync(JournalEntry entry)
+        {
+            return _database.UpdateAsync(entry);
+        }
 
     }
 }
