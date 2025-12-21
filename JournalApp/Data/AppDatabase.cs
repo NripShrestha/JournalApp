@@ -14,9 +14,8 @@ namespace JournalApp.Data
             
         }
 
-        // =========================
-        // INITIALIZATION
-        // =========================
+        // Initialization
+        
 
         public async Task InitializeAsync()
         {
@@ -36,9 +35,8 @@ namespace JournalApp.Data
             
         }
 
-        // =========================
-        // MOODS - COMPLETE SEEDING
-        // =========================
+        
+        // Moods - Complete Seeding
 
         private async Task SeedMoodsIfEmpty()
         {
@@ -97,9 +95,7 @@ namespace JournalApp.Data
                 .ToListAsync();
         }
 
-        // =========================
-        // JOURNAL MOODS
-        // =========================
+        // Journal Moods
 
         public async Task<List<Mood>> GetMoodsForEntryAsync(int journalEntryId)
         {
@@ -159,9 +155,7 @@ namespace JournalApp.Data
             }
         }
 
-        // =========================
-        // MOOD ANALYTICS
-        // =========================
+        // Moods Analytics
 
         public async Task<Dictionary<string, int>> GetMoodCategoryDistributionAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
@@ -239,9 +233,7 @@ namespace JournalApp.Data
                 .FirstOrDefaultAsync();
         }
 
-        // =========================
-        // TAGS
-        // =========================
+        // Tags
 
         private async Task SeedTagsIfEmpty()
         {
@@ -341,9 +333,7 @@ namespace JournalApp.Data
             }
         }
 
-        // =========================
-        // JOURNAL ENTRIES
-        // =========================
+        // Journal Entries
 
         public Task<JournalEntry?> GetEntryByDateAsync(DateTime date)
         {
