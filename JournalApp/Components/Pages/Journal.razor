@@ -40,18 +40,20 @@
                                 {
                                     foreach (var mood in moods)
                                     {
-                                        <span class="badge-pill pill-mood">@mood.Name</span>
+                                        <span class="badge-pill pill-mood @GetMoodColorClass(mood.Category)">
+                                            @mood.Name
+                                        </span>
                                     }
                                 }
-                            </div>
+                        </div>
 
-                            <h4 class="card-title">@entry.Title</h4>
+                        <h4 class="card-title">@entry.Title</h4>
 
-                            <p class="card-excerpt">
-                                @(entry.Content.Length > 100
-                                    ? entry.Content.Substring(0, 100) + "..."
-                                    : entry.Content)
-                            </p>
+                        <p class="card-excerpt">
+                            @(entry.Content.Length > 100
+                                                    ? entry.Content.Substring(0, 100) + "..."
+                                                    : entry.Content)
+                    </p>
 
                             <!-- DELETE BUTTON -->
                             <button type="button"
@@ -62,7 +64,7 @@
                             </button>
 
                         </div>
-                    }
+                                }
                 }
             </div>
         </aside>
@@ -75,45 +77,75 @@
                     <label class="editor-label">Title:</label>
                     <input type="text"
                            class="title-input"
-                           @bind="entryTitle" />
+                           @bind="entryTitle"
+                           placeholder="Enter journal title..." />
                 </div>
 
+                <!-- PRIMARY MOOD - Organized by Category -->
                 <div class="selection-row">
                     <div class="selection-label">
-                        <i class="bi bi-emoji-smile"></i> <span>Mood:</span>
+                        <i class="bi bi-emoji-smile"></i>
+                        <span>Primary Mood: <span class="required-mark">*</span></span>
                     </div>
-                    <div class="pill-cloud">
-                        @foreach (var mood in allMoods)
-                        {
-                            <button type="button"
-                                    class="selection-pill @(selectedPrimaryMoodId == mood.Id ? "active" : "")"
-                                    @onclick="() => selectedPrimaryMoodId = mood.Id">
-                                <span class="dot"></span> @mood.Name
-                            </button>
-                        }
-                    </div>
+
+                    @foreach (var category in new[] { "Positive", "Neutral", "Negative" })
+                    {
+                        var categoryMoods = allMoods.Where(m => m.Category == category).ToList();
+
+                        <div class="mood-category-group">
+                            <div class="category-header">
+                                <span class="category-icon @GetCategoryIconClass(category)"></span>
+                                <span class="category-name">@category</span>
+                            </div>
+                            <div class="pill-cloud">
+                                @foreach (var mood in categoryMoods)
+                                {
+                                    <button type="button"
+                                            class="selection-pill @(selectedPrimaryMoodId == mood.Id ? "active" : "") @GetMoodColorClass(mood.Category)"
+                                            @onclick="() => selectedPrimaryMoodId = mood.Id">
+                                        <span class="dot"></span> @mood.Name
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
 
+                <!-- SECONDARY MOODS - Organized by Category -->
                 <div class="selection-row">
                     <div class="selection-label">
-                        <span>Secondary Mood:</span>
+                        <i class="bi bi-emoji-expressionless"></i>
+                        <span>Secondary Moods (Optional - Max 2):</span>
                     </div>
-                    <div class="pill-cloud">
-                        @foreach (var mood in allMoods)
-                        {
-                            var isDisabled = !selectedSecondaryMoodIds.Contains(mood.Id)
-                                && selectedSecondaryMoodIds.Count >= 2;
 
-                            <button type="button"
-                                    class="selection-pill @(selectedSecondaryMoodIds.Contains(mood.Id) ? "active" : "") @(isDisabled ? "disabled" : "")"
-                                    disabled="@isDisabled"
-                                    @onclick="() => ToggleSecondaryMood(mood.Id, !selectedSecondaryMoodIds.Contains(mood.Id))">
-                                <span class="dot"></span> @mood.Name
-                            </button>
-                        }
-                    </div>
+                    @foreach (var category in new[] { "Positive", "Neutral", "Negative" })
+                    {
+                        var categoryMoods = allMoods.Where(m => m.Category == category).ToList();
+
+                        <div class="mood-category-group">
+                            <div class="category-header">
+                                <span class="category-icon @GetCategoryIconClass(category)"></span>
+                                <span class="category-name">@category</span>
+                            </div>
+                            <div class="pill-cloud">
+                                @foreach (var mood in categoryMoods)
+                                {
+                                    var isDisabled = !selectedSecondaryMoodIds.Contains(mood.Id)
+                                    && selectedSecondaryMoodIds.Count >= 2;
+
+                                    <button type="button"
+                                            class="selection-pill @(selectedSecondaryMoodIds.Contains(mood.Id) ? "active" : "") @(isDisabled ? "disabled" : "") @GetMoodColorClass(mood.Category)"
+                                            disabled="@isDisabled"
+                                            @onclick="() => ToggleSecondaryMood(mood.Id, !selectedSecondaryMoodIds.Contains(mood.Id))">
+                                        <span class="dot"></span> @mood.Name
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
 
+                <!-- TAGS -->
                 <div class="selection-row">
                     <div class="selection-label">
                         <i class="bi bi-tags"></i> <span>Tags:</span>
@@ -130,11 +162,21 @@
                     </div>
                 </div>
 
+                <!-- CONTENT -->
                 <div class="textarea-container">
-                    <textarea placeholder="Add description"
+                    <textarea placeholder="Write your thoughts..."
                               @bind="entryContent"></textarea>
                 </div>
 
+                <!-- VALIDATION MESSAGE -->
+                @if (!string.IsNullOrEmpty(validationMessage))
+                {
+                    <div class="validation-error">
+                        <i class="bi bi-exclamation-circle"></i> @validationMessage
+                    </div>
+                }
+
+                <!-- ACTION BUTTONS -->
                 <div class="action-footer">
                     <button type="button"
                             class="btn-entry"
@@ -145,8 +187,7 @@
                     @if (editingEntry != null)
                     {
                         <button type="button"
-                                class="btn-entry"
-                                style="background-color: #6c757d; margin-left: 10px;"
+                                class="btn-entry btn-cancel"
                                 @onclick="ClearForm">
                             Cancel
                         </button>
@@ -159,9 +200,92 @@
     </div>
 </div>
 
+<style>
+    .mood-category-group {
+        margin-bottom: 15px;
+    }
+
+    .category-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #555;
+    }
+
+    .category-icon {
+        font-size: 16px;
+    }
+
+    .required-mark {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .validation-error {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel {
+        background-color: #6c757d !important;
+    }
+
+        .btn-cancel:hover {
+            background-color: #5a6268 !important;
+        }
+
+    /* Mood color variations */
+    .mood-positive {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+        .mood-positive.active {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+
+    .mood-neutral {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+
+        .mood-neutral.active {
+            background-color: #ffc107;
+            color: #212529;
+            font-weight: bold;
+        }
+
+    .mood-negative {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+        .mood-negative.active {
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+</style>
+
 @code {
     private string entryTitle = string.Empty;
     private string entryContent = string.Empty;
+    private string validationMessage = string.Empty;
 
     // Track which entry we're editing
     private JournalEntry? editingEntry = null;
@@ -204,6 +328,7 @@
         editingEntry = entry;
         entryTitle = entry.Title;
         entryContent = entry.Content;
+        validationMessage = string.Empty;
 
         // Load tags
         var tags = await Database.GetTagsForEntryAsync(entry.Id);
@@ -223,6 +348,27 @@
     // Handles both create and update
     private async Task SaveTodayEntry()
     {
+        // Validation
+        validationMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(entryTitle))
+        {
+            validationMessage = "Please enter a title for your journal entry.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(entryContent))
+        {
+            validationMessage = "Please write some content for your journal entry.";
+            return;
+        }
+
+        if (selectedPrimaryMoodId == 0)
+        {
+            validationMessage = "Please select a primary mood for your entry.";
+            return;
+        }
+
         if (editingEntry != null)
         {
             // UPDATE existing entry
@@ -234,15 +380,11 @@
 
             // Update tags and moods
             await Database.SaveEntryTagsAsync(editingEntry.Id, selectedTagIds);
-
-            if (selectedPrimaryMoodId != 0)
-            {
-                await Database.SaveEntryMoodsAsync(
-                    editingEntry.Id,
-                    selectedPrimaryMoodId,
-                    selectedSecondaryMoodIds
-                );
-            }
+            await Database.SaveEntryMoodsAsync(
+                editingEntry.Id,
+                selectedPrimaryMoodId,
+                selectedSecondaryMoodIds
+            );
         }
         else
         {
@@ -261,15 +403,11 @@
             if (savedEntry != null)
             {
                 await Database.SaveEntryTagsAsync(savedEntry.Id, selectedTagIds);
-
-                if (selectedPrimaryMoodId != 0)
-                {
-                    await Database.SaveEntryMoodsAsync(
-                        savedEntry.Id,
-                        selectedPrimaryMoodId,
-                        selectedSecondaryMoodIds
-                    );
-                }
+                await Database.SaveEntryMoodsAsync(
+                    savedEntry.Id,
+                    selectedPrimaryMoodId,
+                    selectedSecondaryMoodIds
+                );
             }
         }
 
@@ -287,6 +425,7 @@
         selectedPrimaryMoodId = 0;
         selectedSecondaryMoodIds.Clear();
         selectedTagIds.Clear();
+        validationMessage = string.Empty;
     }
 
     private void ToggleSecondaryMood(int moodId, bool isChecked)
@@ -328,5 +467,27 @@
 
         await Database.DeleteEntryAsync(entry);
         await LoadEntries();
+    }
+
+    private string GetMoodColorClass(string category)
+    {
+        return category.ToLower() switch
+        {
+            "positive" => "mood-positive",
+            "neutral" => "mood-neutral",
+            "negative" => "mood-negative",
+            _ => ""
+        };
+    }
+
+    private string GetCategoryIconClass(string category)
+    {
+        return category.ToLower() switch
+        {
+            "positive" => "bi bi-emoji-smile",
+            "neutral" => "bi bi-emoji-neutral",
+            "negative" => "bi bi-emoji-frown",
+            _ => "bi bi-circle"
+        };
     }
 }

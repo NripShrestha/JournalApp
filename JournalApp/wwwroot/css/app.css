@@ -335,13 +335,13 @@ body {
         color: #1f2937;
     }
 
-/* ===== DARK MODE ===== */
+/* ===== DARK MODE BASE ===== */
 body.dark {
     background-color: #121212;
     color: #e5e5e5;
 }
 
-    /* Navbar */
+    /* Navbar - Dark Mode */
     body.dark .top-nav {
         background: #1c1c1c;
         box-shadow: 0 2px 10px rgba(0,0,0,0.6);
@@ -356,7 +356,7 @@ body.dark {
             border-bottom-color: #ffffff;
         }
 
-    /* Cards & Sections */
+    /* Cards & Sections - Dark Mode */
     body.dark .history-section,
     body.dark .editor-section {
         background: #1a1a1a;
@@ -366,7 +366,7 @@ body.dark {
         border-color: #2a2a2a;
     }
 
-    /* Pills */
+    /* Pills - Dark Mode */
     body.dark .pill-date {
         background: #2a2a2a;
         color: #aaa;
@@ -382,7 +382,7 @@ body.dark {
         color: #ffcb8a;
     }
 
-    /* Inputs */
+    /* Inputs - Dark Mode */
     body.dark .title-input,
     body.dark textarea {
         background: #121212;
@@ -390,7 +390,7 @@ body.dark {
         border-color: #444;
     }
 
-    /* Buttons */
+    /* Buttons - Dark Mode */
     body.dark .btn-entry {
         background-color: #4dafff;
     }
@@ -404,3 +404,405 @@ body.dark {
             color: #fff;
         }
 
+    /* ===== DARK MODE - MOODS PAGE SPECIFIC ===== */
+
+    body.dark .moods-container {
+        color: #e5e5e5;
+    }
+
+    body.dark .page-title {
+        color: #ffffff;
+    }
+
+    /* Filter Section - Dark Mode */
+    body.dark .filter-section {
+        background: #1a1a1a;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+        body.dark .filter-section h3 {
+            color: #e5e5e5;
+        }
+
+    body.dark .filter-group label {
+        color: #aaa;
+    }
+
+    body.dark .filter-group input[type="date"] {
+        background: #121212;
+        color: #e5e5e5;
+        border-color: #444;
+    }
+
+    body.dark .btn-filter {
+        background: #4dafff;
+        color: #ffffff;
+    }
+
+        body.dark .btn-filter:hover {
+            background: #3b9fe8;
+        }
+
+    /* Analytics Section - Dark Mode */
+    body.dark .analytics-section h2 {
+        color: #ffffff;
+    }
+
+    body.dark .stat-card {
+        background: #1a1a1a;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+        body.dark .stat-card h4 {
+            color: #e5e5e5;
+        }
+
+    body.dark .category-label {
+        color: #aaa;
+    }
+
+    /* Distribution Bars - Dark Mode */
+    body.dark .bar-container {
+        background: #2a2a2a;
+    }
+
+    body.dark .bar-text {
+        color: #e5e5e5;
+    }
+
+    /* Mood Category Colors - Dark Mode Adjusted */
+    body.dark .mood-positive {
+        background: #1e4620;
+        color: #90ee90;
+    }
+
+    body.dark .mood-neutral {
+        background: #4a3a1a;
+        color: #ffd966;
+    }
+
+    body.dark .mood-negative {
+        background: #4a1e1e;
+        color: #ff9999;
+    }
+
+    body.dark .mood-badge.mood-positive {
+        background: #2a5a2d;
+        color: #90ee90;
+    }
+
+    body.dark .mood-badge.mood-neutral {
+        background: #5a4a2a;
+        color: #ffd966;
+    }
+
+    body.dark .mood-badge.mood-negative {
+        background: #5a2a2a;
+        color: #ff9999;
+    }
+
+    /* Category Headers - Dark Mode */
+    body.dark .category-header-positive {
+        background: #1e4620;
+        color: #90ee90;
+    }
+
+    body.dark .category-header-neutral {
+        background: #4a3a1a;
+        color: #ffd966;
+    }
+
+    body.dark .category-header-negative {
+        background: #4a1e1e;
+        color: #ff9999;
+    }
+
+    /* History Section - Dark Mode */
+    body.dark .history-section h2 {
+        color: #ffffff;
+    }
+
+    body.dark .empty-message {
+        color: #888;
+    }
+
+    /* Mood Entry Cards - Dark Mode */
+    body.dark .mood-entry-card {
+        background: #1a1a1a;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+        body.dark .mood-entry-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+        }
+
+    body.dark .entry-date {
+        color: #888;
+    }
+
+    body.dark .entry-title {
+        color: #e5e5e5;
+    }
+
+    body.dark .no-mood {
+        color: #666;
+    }
+
+    /* Mood Pills - Dark Mode */
+    body.dark .mood-pill.primary-mood.mood-positive {
+        background: #2a5a2d;
+        color: #90ee90;
+        border-color: #90ee90;
+    }
+
+    body.dark .mood-pill.primary-mood.mood-neutral {
+        background: #5a4a2a;
+        color: #ffd966;
+        border-color: #ffd966;
+    }
+
+    body.dark .mood-pill.primary-mood.mood-negative {
+        background: #5a2a2a;
+        color: #ff9999;
+        border-color: #ff9999;
+    }
+
+    body.dark .mood-pill.secondary-mood.mood-positive {
+        background: #1e4620;
+        color: #90ee90;
+    }
+
+    body.dark .mood-pill.secondary-mood.mood-neutral {
+        background: #4a3a1a;
+        color: #ffd966;
+    }
+
+    body.dark .mood-pill.secondary-mood.mood-negative {
+        background: #4a1e1e;
+        color: #ff9999;
+    }
+
+    /* ===== DARK MODE - JOURNAL PAGE ENHANCEMENTS ===== */
+
+    /* Mood Category Groups */
+    body.dark .mood-category-group {
+        color: #e5e5e5;
+    }
+
+    body.dark .category-header {
+        color: #e5e5e5;
+    }
+
+    body.dark .category-name {
+        color: #cfcfcf;
+    }
+
+    /* Validation Error - Dark Mode */
+    body.dark .validation-error {
+        background: #3a3020;
+        border-color: #5a4a30;
+        color: #ffd966;
+    }
+
+    /* Selection Pills - Dark Mode */
+    body.dark .selection-pill {
+        background: #1a1a1a;
+        border-color: #444;
+        color: #e5e5e5;
+    }
+
+        body.dark .selection-pill:hover {
+            background: #2a2a2a;
+        }
+
+        body.dark .selection-pill .dot {
+            background-color: #444;
+        }
+
+        body.dark .selection-pill.active .dot {
+            background-color: #4DAFFF;
+        }
+
+        body.dark .selection-pill.disabled {
+            background: #1a1a1a;
+            border-color: #333;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Mood Pills in Selection - Dark Mode */
+        body.dark .selection-pill.mood-positive {
+            background: #1e4620;
+            color: #90ee90;
+            border-color: #2a5a2d;
+        }
+
+            body.dark .selection-pill.mood-positive.active {
+                background: #2a5a2d;
+                color: #90ee90;
+                border-color: #90ee90;
+                font-weight: bold;
+            }
+
+                body.dark .selection-pill.mood-positive.active .dot {
+                    background-color: #90ee90;
+                }
+
+        body.dark .selection-pill.mood-neutral {
+            background: #4a3a1a;
+            color: #ffd966;
+            border-color: #5a4a2a;
+        }
+
+            body.dark .selection-pill.mood-neutral.active {
+                background: #5a4a2a;
+                color: #ffd966;
+                border-color: #ffd966;
+                font-weight: bold;
+            }
+
+                body.dark .selection-pill.mood-neutral.active .dot {
+                    background-color: #ffd966;
+                }
+
+        body.dark .selection-pill.mood-negative {
+            background: #4a1e1e;
+            color: #ff9999;
+            border-color: #5a2a2a;
+        }
+
+            body.dark .selection-pill.mood-negative.active {
+                background: #5a2a2a;
+                color: #ff9999;
+                border-color: #ff9999;
+                font-weight: bold;
+            }
+
+                body.dark .selection-pill.mood-negative.active .dot {
+                    background-color: #ff9999;
+                }
+
+    /* History Card Pills - Dark Mode Enhanced */
+    body.dark .badge-pill.pill-mood.mood-positive {
+        background: #1e4620;
+        color: #90ee90;
+    }
+
+    body.dark .badge-pill.pill-mood.mood-neutral {
+        background: #4a3a1a;
+        color: #ffd966;
+    }
+
+    body.dark .badge-pill.pill-mood.mood-negative {
+        background: #4a1e1e;
+        color: #ff9999;
+    }
+
+    /* Required Mark */
+    body.dark .required-mark {
+        color: #ff9999;
+    }
+
+    /* Cancel Button - Dark Mode */
+    body.dark .btn-cancel {
+        background-color: #3a3a3a !important;
+        color: #e5e5e5;
+    }
+
+        body.dark .btn-cancel:hover {
+            background-color: #4a4a4a !important;
+        }
+
+    /* Card Title & Excerpt - Dark Mode */
+    body.dark .card-title {
+        color: #e5e5e5;
+    }
+
+    body.dark .card-excerpt {
+        color: #aaa;
+    }
+
+    /* Empty State - Dark Mode */
+    body.dark .empty-state {
+        color: #888;
+    }
+
+    /* Delete Button - Dark Mode */
+    body.dark .card-delete {
+        background: #2a2a2a;
+        color: #ff9999;
+    }
+
+        body.dark .card-delete:hover {
+            background: #4a1e1e;
+            color: #ff6666;
+        }
+
+    /* Selection Label Icons - Dark Mode */
+    body.dark .selection-label {
+        color: #aaa;
+    }
+
+    body.dark .category-icon {
+        color: #cfcfcf;
+    }
+
+    /* Placeholder Text - Dark Mode */
+    body.dark textarea::placeholder,
+    body.dark input::placeholder {
+        color: #666;
+    }
+
+    /* Bar Chart Colors - Keep Vibrant in Dark Mode */
+    body.dark .bar-positive {
+        background: #4caf50;
+    }
+
+    body.dark .bar-neutral {
+        background: #ff9800;
+    }
+
+    body.dark .bar-negative {
+        background: #f44336;
+    }
+
+    /* Additional Refinements for Better Contrast */
+    body.dark .section-title {
+        color: #ffffff;
+    }
+
+    body.dark .editor-label {
+        color: #ffffff;
+    }
+
+    /* Scrollbar Styling for Dark Mode */
+    body.dark .history-scroll::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    body.dark .history-scroll::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+
+    body.dark .history-scroll::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 4px;
+    }
+
+        body.dark .history-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    /* Focus States - Dark Mode */
+    body.dark input:focus,
+    body.dark textarea:focus,
+    body.dark button:focus {
+        outline: 2px solid #4dafff;
+        outline-offset: 2px;
+    }
+
+    /* Disabled Pills - Dark Mode Enhancement */
+    body.dark .selection-pill.disabled .dot {
+        background-color: #333;
+    }

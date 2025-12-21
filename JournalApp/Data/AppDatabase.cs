@@ -10,6 +10,8 @@ namespace JournalApp.Data
         public AppDatabase(string dbPath)
         {
             _database = new SQLiteAsyncConnection(dbPath);
+
+            
         }
 
         // =========================
@@ -21,14 +23,79 @@ namespace JournalApp.Data
             await _database.CreateTableAsync<Mood>();
             await _database.CreateTableAsync<JournalEntry>();
             await _database.CreateTableAsync<JournalEntryMood>();
-
             await _database.CreateTableAsync<Tag>();
             await _database.CreateTableAsync<JournalEntryTag>();
 
             await SeedMoodsIfEmpty();
             await SeedTagsIfEmpty();
+
+            // Log counts after seeding
+            var moodCount = await _database.Table<Mood>().CountAsync();
+            var tagCount = await _database.Table<Tag>().CountAsync();
+
+            
         }
 
+        // =========================
+        // MOODS - COMPLETE SEEDING
+        // =========================
+
+        private async Task SeedMoodsIfEmpty()
+        {
+            var count = await _database.Table<Mood>().CountAsync();
+
+            // If we have less than 15 moods, add the missing ones
+            if (count < 15)
+            {
+                var existingMoods = await _database.Table<Mood>().ToListAsync();
+                var existingNames = existingMoods.Select(m => m.Name).ToHashSet();
+
+                var allMoods = new[]
+                {
+                    // Positive Moods
+                    new Mood { Name = "Happy", Category = "Positive" },
+                    new Mood { Name = "Excited", Category = "Positive" },
+                    new Mood { Name = "Relaxed", Category = "Positive" },
+                    new Mood { Name = "Grateful", Category = "Positive" },
+                    new Mood { Name = "Confident", Category = "Positive" },
+                    
+                    // Neutral Moods
+                    new Mood { Name = "Calm", Category = "Neutral" },
+                    new Mood { Name = "Thoughtful", Category = "Neutral" },
+                    new Mood { Name = "Curious", Category = "Neutral" },
+                    new Mood { Name = "Nostalgic", Category = "Neutral" },
+                    new Mood { Name = "Bored", Category = "Neutral" },
+                    
+                    // Negative Moods
+                    new Mood { Name = "Sad", Category = "Negative" },
+                    new Mood { Name = "Angry", Category = "Negative" },
+                    new Mood { Name = "Stressed", Category = "Negative" },
+                    new Mood { Name = "Lonely", Category = "Negative" },
+                    new Mood { Name = "Anxious", Category = "Negative" }
+                };
+
+                // Only insert moods that don't exist
+                var moodsToAdd = allMoods.Where(m => !existingNames.Contains(m.Name)).ToList();
+
+                if (moodsToAdd.Any())
+                {
+                    await _database.InsertAllAsync(moodsToAdd);
+                    
+                }
+            }
+        }
+
+        public Task<List<Mood>> GetMoodsAsync()
+        {
+            return _database.Table<Mood>().ToListAsync();
+        }
+
+        public async Task<List<Mood>> GetMoodsByCategoryAsync(string category)
+        {
+            return await _database.Table<Mood>()
+                .Where(m => m.Category == category)
+                .ToListAsync();
+        }
 
         // =========================
         // JOURNAL MOODS
@@ -36,7 +103,6 @@ namespace JournalApp.Data
 
         public async Task<List<Mood>> GetMoodsForEntryAsync(int journalEntryId)
         {
-            // Step 1: Get mood IDs linked to the journal entry
             var moodLinks = await _database.Table<JournalEntryMood>()
                 .Where(jm => jm.JournalEntryId == journalEntryId)
                 .ToListAsync();
@@ -46,12 +112,18 @@ namespace JournalApp.Data
 
             var moodIds = moodLinks.Select(jm => jm.MoodId).ToList();
 
-            // Step 2: Fetch moods by ID
             var moods = await _database.Table<Mood>()
                 .Where(m => moodIds.Contains(m.Id))
                 .ToListAsync();
 
             return moods;
+        }
+
+        public async Task<List<JournalEntryMood>> GetMoodLinksForEntryAsync(int journalEntryId)
+        {
+            return await _database.Table<JournalEntryMood>()
+                .Where(jm => jm.JournalEntryId == journalEntryId)
+                .ToListAsync();
         }
 
         public async Task SaveEntryMoodsAsync(
@@ -88,44 +160,145 @@ namespace JournalApp.Data
         }
 
         // =========================
-        // MOODS
+        // MOOD ANALYTICS
         // =========================
 
-        public Task<List<Mood>> GetMoodsAsync()
+        public async Task<Dictionary<string, int>> GetMoodCategoryDistributionAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            return _database.Table<Mood>().ToListAsync();
+            var allEntries = await _database.Table<JournalEntry>().ToListAsync();
+
+            if (startDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate >= startDate.Value.Date).ToList();
+
+            if (endDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate <= endDate.Value.Date).ToList();
+
+            var distribution = new Dictionary<string, int>
+            {
+                { "Positive", 0 },
+                { "Neutral", 0 },
+                { "Negative", 0 }
+            };
+
+            foreach (var entry in allEntries)
+            {
+                var moodLinks = await _database.Table<JournalEntryMood>()
+                    .Where(jm => jm.JournalEntryId == entry.Id && jm.IsPrimary)
+                    .FirstOrDefaultAsync();
+
+                if (moodLinks != null)
+                {
+                    var mood = await _database.Table<Mood>()
+                        .Where(m => m.Id == moodLinks.MoodId)
+                        .FirstOrDefaultAsync();
+
+                    if (mood != null && distribution.ContainsKey(mood.Category))
+                    {
+                        distribution[mood.Category]++;
+                    }
+                }
+            }
+
+            return distribution;
         }
 
-        private async Task SeedMoodsIfEmpty()
+        public async Task<Mood?> GetMostFrequentMoodAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var count = await _database.Table<Mood>().CountAsync();
-            if (count == 0)
+            var allEntries = await _database.Table<JournalEntry>().ToListAsync();
+
+            if (startDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate >= startDate.Value.Date).ToList();
+
+            if (endDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate <= endDate.Value.Date).ToList();
+
+            var moodCounts = new Dictionary<int, int>();
+
+            foreach (var entry in allEntries)
             {
-                await _database.InsertAllAsync(new[]
+                var moodLinks = await _database.Table<JournalEntryMood>()
+                    .Where(jm => jm.JournalEntryId == entry.Id && jm.IsPrimary)
+                    .FirstOrDefaultAsync();
+
+                if (moodLinks != null)
                 {
-                    new Mood { Name = "Happy", Category = "Positive" },
-                    new Mood { Name = "Calm", Category = "Positive" },
-                    new Mood { Name = "Sad", Category = "Negative" },
-                    new Mood { Name = "Stressed", Category = "Negative" }
-                });
+                    if (moodCounts.ContainsKey(moodLinks.MoodId))
+                        moodCounts[moodLinks.MoodId]++;
+                    else
+                        moodCounts[moodLinks.MoodId] = 1;
+                }
             }
+
+            if (moodCounts.Count == 0)
+                return null;
+
+            var mostFrequentMoodId = moodCounts.OrderByDescending(kvp => kvp.Value).First().Key;
+
+            return await _database.Table<Mood>()
+                .Where(m => m.Id == mostFrequentMoodId)
+                .FirstOrDefaultAsync();
         }
+
+        // =========================
+        // TAGS
+        // =========================
+
         private async Task SeedTagsIfEmpty()
         {
             var count = await _database.Table<Tag>().CountAsync();
-            if (count == 0)
+
+            // If we have less than 31 tags, add the missing ones
+            if (count < 31)
             {
-                await _database.InsertAllAsync(new[]
+                var existingTags = await _database.Table<Tag>().ToListAsync();
+                var existingNames = existingTags.Select(t => t.Name).ToHashSet();
+
+                var allTags = new[]
                 {
-            new Tag { Name = "Work", IsPredefined = true },
-            new Tag { Name = "Health", IsPredefined = true },
-            new Tag { Name = "Travel", IsPredefined = true },
-            new Tag { Name = "Family", IsPredefined = true },
-            new Tag { Name = "Fitness", IsPredefined = true },
-            new Tag { Name = "Study", IsPredefined = true }
-        });
+                    new Tag { Name = "Work", IsPredefined = true },
+                    new Tag { Name = "Career", IsPredefined = true },
+                    new Tag { Name = "Studies", IsPredefined = true },
+                    new Tag { Name = "Family", IsPredefined = true },
+                    new Tag { Name = "Friends", IsPredefined = true },
+                    new Tag { Name = "Relationships", IsPredefined = true },
+                    new Tag { Name = "Health", IsPredefined = true },
+                    new Tag { Name = "Fitness", IsPredefined = true },
+                    new Tag { Name = "Personal Growth", IsPredefined = true },
+                    new Tag { Name = "Self-care", IsPredefined = true },
+                    new Tag { Name = "Hobbies", IsPredefined = true },
+                    new Tag { Name = "Travel", IsPredefined = true },
+                    new Tag { Name = "Nature", IsPredefined = true },
+                    new Tag { Name = "Finance", IsPredefined = true },
+                    new Tag { Name = "Spirituality", IsPredefined = true },
+                    new Tag { Name = "Birthday", IsPredefined = true },
+                    new Tag { Name = "Holiday", IsPredefined = true },
+                    new Tag { Name = "Vacation", IsPredefined = true },
+                    new Tag { Name = "Celebration", IsPredefined = true },
+                    new Tag { Name = "Exercise", IsPredefined = true },
+                    new Tag { Name = "Reading", IsPredefined = true },
+                    new Tag { Name = "Writing", IsPredefined = true },
+                    new Tag { Name = "Cooking", IsPredefined = true },
+                    new Tag { Name = "Meditation", IsPredefined = true },
+                    new Tag { Name = "Yoga", IsPredefined = true },
+                    new Tag { Name = "Music", IsPredefined = true },
+                    new Tag { Name = "Shopping", IsPredefined = true },
+                    new Tag { Name = "Parenting", IsPredefined = true },
+                    new Tag { Name = "Projects", IsPredefined = true },
+                    new Tag { Name = "Planning", IsPredefined = true },
+                    new Tag { Name = "Reflection", IsPredefined = true }
+                };
+
+                // Only insert tags that don't exist
+                var tagsToAdd = allTags.Where(t => !existingNames.Contains(t.Name)).ToList();
+
+                if (tagsToAdd.Any())
+                {
+                    await _database.InsertAllAsync(tagsToAdd);
+                    
+                }
             }
         }
+
         public Task<List<Tag>> GetTagsAsync()
         {
             return _database.Table<Tag>()
@@ -133,11 +306,45 @@ namespace JournalApp.Data
                 .ToListAsync();
         }
 
+        public async Task<List<Tag>> GetTagsForEntryAsync(int journalEntryId)
+        {
+            var tagLinks = await _database.Table<JournalEntryTag>()
+                .Where(jt => jt.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            if (tagLinks.Count == 0)
+                return new List<Tag>();
+
+            var tagIds = tagLinks.Select(jt => jt.TagId).ToList();
+
+            return await _database.Table<Tag>()
+                .Where(t => tagIds.Contains(t.Id))
+                .ToListAsync();
+        }
+
+        public async Task SaveEntryTagsAsync(int journalEntryId, List<int> tagIds)
+        {
+            var existing = await _database.Table<JournalEntryTag>()
+                .Where(jt => jt.JournalEntryId == journalEntryId)
+                .ToListAsync();
+
+            foreach (var item in existing)
+                await _database.DeleteAsync(item);
+
+            foreach (var tagId in tagIds)
+            {
+                await _database.InsertAsync(new JournalEntryTag
+                {
+                    JournalEntryId = journalEntryId,
+                    TagId = tagId
+                });
+            }
+        }
 
         // =========================
-        // JOURNAL
+        // JOURNAL ENTRIES
         // =========================
-        // Get entry for a specific date (one per day rule)
+
         public Task<JournalEntry?> GetEntryByDateAsync(DateTime date)
         {
             return _database.Table<JournalEntry>()
@@ -145,7 +352,6 @@ namespace JournalApp.Data
                 .FirstOrDefaultAsync();
         }
 
-        // Insert or update today's entry
         public async Task SaveEntryAsync(JournalEntry entry)
         {
             var existing = await GetEntryByDateAsync(entry.EntryDate);
@@ -164,35 +370,6 @@ namespace JournalApp.Data
                 await _database.UpdateAsync(existing);
             }
         }
-        public async Task SaveEntryTagsAsync(
-    int journalEntryId,
-    List<int> tagIds)
-        {
-            // Remove existing tags
-            var existing = await _database.Table<JournalEntryTag>()
-                .Where(jt => jt.JournalEntryId == journalEntryId)
-                .ToListAsync();
-
-            foreach (var item in existing)
-                await _database.DeleteAsync(item);
-
-            // Insert new tags
-            foreach (var tagId in tagIds)
-            {
-                await _database.InsertAsync(new JournalEntryTag
-                {
-                    JournalEntryId = journalEntryId,
-                    TagId = tagId
-                });
-            }
-        }
-
-
-        // Delete entry by id
-        public Task DeleteEntryAsync(JournalEntry entry)
-        {
-            return _database.DeleteAsync(entry);
-        }
 
         public Task<List<JournalEntry>> GetEntriesAsync()
         {
@@ -201,40 +378,73 @@ namespace JournalApp.Data
                 .ToListAsync();
         }
 
-        public Task<int> AddEntryAsync(JournalEntry entry)
+        public async Task<List<JournalEntry>> GetEntriesFilteredAsync(
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            List<int>? moodIds = null,
+            List<int>? tagIds = null)
         {
-            return _database.InsertAsync(entry);
+            var allEntries = await _database.Table<JournalEntry>().ToListAsync();
+
+            // Filter by date range
+            if (startDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate >= startDate.Value.Date).ToList();
+
+            if (endDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate <= endDate.Value.Date).ToList();
+
+            // Filter by moods
+            if (moodIds != null && moodIds.Count > 0)
+            {
+                var filteredByMood = new List<JournalEntry>();
+                foreach (var entry in allEntries)
+                {
+                    var entryMoodLinks = await _database.Table<JournalEntryMood>()
+                        .Where(jm => jm.JournalEntryId == entry.Id)
+                        .ToListAsync();
+
+                    if (entryMoodLinks.Any(jm => moodIds.Contains(jm.MoodId)))
+                    {
+                        filteredByMood.Add(entry);
+                    }
+                }
+                allEntries = filteredByMood;
+            }
+
+            // Filter by tags
+            if (tagIds != null && tagIds.Count > 0)
+            {
+                var filteredByTag = new List<JournalEntry>();
+                foreach (var entry in allEntries)
+                {
+                    var entryTagLinks = await _database.Table<JournalEntryTag>()
+                        .Where(jt => jt.JournalEntryId == entry.Id)
+                        .ToListAsync();
+
+                    if (entryTagLinks.Any(jt => tagIds.Contains(jt.TagId)))
+                    {
+                        filteredByTag.Add(entry);
+                    }
+                }
+                allEntries = filteredByTag;
+            }
+
+            return allEntries.OrderByDescending(e => e.CreatedAt).ToList();
         }
-        public async Task<List<Tag>> GetTagsForEntryAsync(int journalEntryId)
-        {
-            // Step 1: Get tag IDs linked to this entry
-            var tagLinks = await _database.Table<JournalEntryTag>()
-                .Where(jt => jt.JournalEntryId == journalEntryId)
-                .ToListAsync();
 
-            if (tagLinks.Count == 0)
-                return new List<Tag>();
-
-            var tagIds = tagLinks.Select(jt => jt.TagId).ToList();
-
-            // Step 2: Fetch actual tags
-            return await _database.Table<Tag>()
-                .Where(t => tagIds.Contains(t.Id))
-                .ToListAsync();
-        }
-        // Get mood links (needed to distinguish primary vs secondary)
-        public async Task<List<JournalEntryMood>> GetMoodLinksForEntryAsync(int journalEntryId)
-        {
-            return await _database.Table<JournalEntryMood>()
-                .Where(jm => jm.JournalEntryId == journalEntryId)
-                .ToListAsync();
-        }
-
-        // Update existing entry
         public Task UpdateEntryAsync(JournalEntry entry)
         {
             return _database.UpdateAsync(entry);
         }
 
+        public Task DeleteEntryAsync(JournalEntry entry)
+        {
+            return _database.DeleteAsync(entry);
+        }
+
+        public Task<int> AddEntryAsync(JournalEntry entry)
+        {
+            return _database.InsertAsync(entry);
+        }
     }
 }
