@@ -2,19 +2,35 @@
 @inject SecurityService Security
 @inject NavigationManager Nav
 
-<h2>🔒 Unlock Journal</h2>
+<div class="unlock-container">
+    <div class="unlock-card">
+        <div class="lock-icon">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <circle cx="12" cy="16" r="1"></circle>
+            </svg>
+        </div>
 
-<input type="password"
-       maxlength="4"
-       placeholder="Enter PIN"
-       @bind="pin" />
+        <h2 class="unlock-title">Enter Your PIN</h2>
 
-<br />
-<br />
+        <div class="input-wrapper">
+            <input type="password"
+                   maxlength="4"
+                   class="pin-input"
+                   @bind="pin"
+                   @bind:event="oninput"
+                   @onkeyup="HandleKeyUp" />
+        </div>
 
-<button @onclick="UnlockJournal">Unlock</button>
+        <button class="unlock-btn" @onclick="UnlockJournal">Unlock</button>
 
-<p style="color:red">@error</p>
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <p class="error-text">@error</p>
+        }
+    </div>
+</div>
 
 @code {
     private string pin = "";
@@ -26,6 +42,11 @@
         {
             error = "Set a new 4-digit PIN";
         }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await UnlockJournal();
     }
 
     private async Task UnlockJournal()
@@ -48,6 +69,7 @@
         else
         {
             error = "Incorrect PIN";
+            pin = ""; // Clear pin on error
         }
     }
 }
