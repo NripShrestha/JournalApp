@@ -24,6 +24,8 @@ namespace JournalApp.Data
             await _database.CreateTableAsync<JournalEntryMood>();
             await _database.CreateTableAsync<Tag>();
             await _database.CreateTableAsync<JournalEntryTag>();
+            await _database.CreateTableAsync<AppSecurity>();
+
 
             await SeedMoodsIfEmpty();
             await SeedTagsIfEmpty();
@@ -436,5 +438,28 @@ namespace JournalApp.Data
         {
             return _database.InsertAsync(entry);
         }
+        public async Task<AppSecurity?> GetSecurityAsync()
+        {
+            return await _database.Table<AppSecurity>().FirstOrDefaultAsync();
+        }
+
+        public async Task SavePinHashAsync(string hash)
+        {
+            var existing = await GetSecurityAsync();
+
+            if (existing == null)
+            {
+                await _database.InsertAsync(new AppSecurity
+                {
+                    PinHash = hash
+                });
+            }
+            else
+            {
+                existing.PinHash = hash;
+                await _database.UpdateAsync(existing);
+            }
+        }
+
     }
 }

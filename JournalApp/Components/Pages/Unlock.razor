@@ -1,0 +1,53 @@
+﻿@page "/unlock"
+@inject SecurityService Security
+@inject NavigationManager Nav
+
+<h2>🔒 Unlock Journal</h2>
+
+<input type="password"
+       maxlength="4"
+       placeholder="Enter PIN"
+       @bind="pin" />
+
+<br />
+<br />
+
+<button @onclick="UnlockJournal">Unlock</button>
+
+<p style="color:red">@error</p>
+
+@code {
+    private string pin = "";
+    private string error = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await Security.HasPinAsync())
+        {
+            error = "Set a new 4-digit PIN";
+        }
+    }
+
+    private async Task UnlockJournal()
+    {
+        if (pin.Length != 4)
+        {
+            error = "PIN must be 4 digits";
+            return;
+        }
+
+        if (!await Security.HasPinAsync())
+        {
+            await Security.SetPinAsync(pin);
+            Nav.NavigateTo("/journal");
+        }
+        else if (await Security.VerifyPinAsync(pin))
+        {
+            Nav.NavigateTo("/journal");
+        }
+        else
+        {
+            error = "Incorrect PIN";
+        }
+    }
+}

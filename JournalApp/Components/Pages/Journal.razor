@@ -1,6 +1,8 @@
 ﻿@page "/journal"
 @using JournalApp.Models
 @inject JournalApp.Data.AppDatabase Database
+@inject SecurityService Security
+@inject NavigationManager Nav
 
 <div class="journal-container">
     <div class="journal-grid">
@@ -224,6 +226,11 @@
         allTags = await Database.GetTagsAsync();
         allMoods = await Database.GetMoodsAsync();
         await LoadEntries();
+        if (!Security.IsUnlocked)
+        {
+            Nav.NavigateTo("/unlock");
+            return;
+        }
     }
 
     private async Task LoadEntries()

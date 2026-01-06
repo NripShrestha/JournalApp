@@ -16,6 +16,7 @@ namespace JournalApp
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddSingleton<SecurityService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
