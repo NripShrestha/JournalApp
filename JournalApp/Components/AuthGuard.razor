@@ -1,0 +1,42 @@
+﻿@inject SecurityService Security
+@inject NavigationManager Nav
+
+@if (isAuthorized)
+{
+    @ChildContent
+}
+else
+{
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool isAuthorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isSetupComplete = await Security.IsSetupCompleteAsync();
+
+        if (!isSetupComplete)
+        {
+            // No setup, redirect to setup page
+            Nav.NavigateTo("/setup", true);
+            return;
+        }
+
+        if (!Security.IsUnlocked)
+        {
+            // Setup exists but not logged in, redirect to login
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+
+        // User is authenticated
+        isAuthorized = true;
+    }
+}

@@ -10,13 +10,9 @@ namespace JournalApp.Data
         public AppDatabase(string dbPath)
         {
             _database = new SQLiteAsyncConnection(dbPath);
-
-            
         }
 
         // Initialization
-        
-
         public async Task InitializeAsync()
         {
             await _database.CreateTableAsync<Mood>();
@@ -26,20 +22,15 @@ namespace JournalApp.Data
             await _database.CreateTableAsync<JournalEntryTag>();
             await _database.CreateTableAsync<AppSecurity>();
 
-
             await SeedMoodsIfEmpty();
             await SeedTagsIfEmpty();
 
             // Log counts after seeding
             var moodCount = await _database.Table<Mood>().CountAsync();
             var tagCount = await _database.Table<Tag>().CountAsync();
-
-            
         }
 
-        
         // Moods - Complete Seeding
-
         private async Task SeedMoodsIfEmpty()
         {
             var count = await _database.Table<Mood>().CountAsync();
@@ -80,7 +71,6 @@ namespace JournalApp.Data
                 if (moodsToAdd.Any())
                 {
                     await _database.InsertAllAsync(moodsToAdd);
-                    
                 }
             }
         }
@@ -98,7 +88,6 @@ namespace JournalApp.Data
         }
 
         // Journal Moods
-
         public async Task<List<Mood>> GetMoodsForEntryAsync(int journalEntryId)
         {
             var moodLinks = await _database.Table<JournalEntryMood>()
@@ -158,7 +147,6 @@ namespace JournalApp.Data
         }
 
         // Moods Analytics
-
         public async Task<Dictionary<string, int>> GetMoodCategoryDistributionAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var allEntries = await _database.Table<JournalEntry>().ToListAsync();
@@ -236,7 +224,6 @@ namespace JournalApp.Data
         }
 
         // Tags
-
         private async Task SeedTagsIfEmpty()
         {
             var count = await _database.Table<Tag>().CountAsync();
@@ -288,7 +275,6 @@ namespace JournalApp.Data
                 if (tagsToAdd.Any())
                 {
                     await _database.InsertAllAsync(tagsToAdd);
-                    
                 }
             }
         }
@@ -336,7 +322,6 @@ namespace JournalApp.Data
         }
 
         // Journal Entries
-
         public Task<JournalEntry?> GetEntryByDateAsync(DateTime date)
         {
             return _database.Table<JournalEntry>()
@@ -438,9 +423,31 @@ namespace JournalApp.Data
         {
             return _database.InsertAsync(entry);
         }
+
+        // Security Methods
         public async Task<AppSecurity?> GetSecurityAsync()
         {
             return await _database.Table<AppSecurity>().FirstOrDefaultAsync();
+        }
+
+        public async Task SaveSecurityAsync(AppSecurity security)
+        {
+            var existing = await GetSecurityAsync();
+
+            if (existing == null)
+            {
+                await _database.InsertAsync(security);
+            }
+            else
+            {
+                security.Id = existing.Id;
+                await _database.UpdateAsync(security);
+            }
+        }
+
+        public async Task UpdateSecurityAsync(AppSecurity security)
+        {
+            await _database.UpdateAsync(security);
         }
 
         public async Task SavePinHashAsync(string hash)
@@ -460,6 +467,5 @@ namespace JournalApp.Data
                 await _database.UpdateAsync(existing);
             }
         }
-
     }
 }

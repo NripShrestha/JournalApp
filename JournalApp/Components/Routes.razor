@@ -1,6 +1,23 @@
 ﻿<Router AppAssembly="@typeof(Routes).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData"
-                   DefaultLayout="@typeof(Layout.MainLayout)" />
+        @{
+            var page = routeData.PageType.Name;
+            var isAuthPage = page == "Setup" || page == "Login" || page == "ForgotPin";
+        }
+
+        @if (isAuthPage)
+        {
+            <RouteView RouteData="@routeData" />
+        }
+        else
+        {
+            <AuthGuard>
+                <RouteView RouteData="@routeData"
+                           DefaultLayout="@typeof(Layout.MainLayout)" />
+            </AuthGuard>
+        }
     </Found>
+    <NotFound>
+        <h1>Page Not Found</h1>
+    </NotFound>
 </Router>

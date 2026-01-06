@@ -1,0 +1,164 @@
+﻿@page "/setup"
+@inject SecurityService Security
+@inject NavigationManager Nav
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo-section">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h1 class="auth-title">Welcome to Journify</h1>
+            <p class="auth-subtitle">Let's set up your account</p>
+        </div>
+
+        <div class="auth-form">
+            <!-- Username -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="bi bi-person"></i>
+                    Username
+                </label>
+                <input type="text"
+                       class="form-input"
+                       placeholder="Enter your name"
+                       @bind="username"
+                       @bind:event="oninput" />
+            </div>
+
+            <!-- Security Question -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="bi bi-shield-lock"></i>
+                    Security Question
+                </label>
+                <input type="text"
+                       class="form-input"
+                       placeholder="e.g., What is your college name?"
+                       @bind="securityQuestion"
+                       @bind:event="oninput" />
+            </div>
+
+            <!-- Security Answer -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="bi bi-key"></i>
+                    Answer
+                </label>
+                <input type="text"
+                       class="form-input"
+                       placeholder="Your answer"
+                       @bind="securityAnswer"
+                       @bind:event="oninput" />
+            </div>
+
+            <!-- PIN -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="bi bi-lock"></i>
+                    Create 4-digit PIN
+                </label>
+                <input type="password"
+                       maxlength="4"
+                       inputmode="numeric"
+                       pattern="[0-9]*"
+                       class="form-input pin-input-field"
+                       placeholder="••••"
+                       @bind="pin"
+                       @bind:event="oninput" />
+            </div>
+
+            <!-- Confirm PIN -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="bi bi-lock-fill"></i>
+                    Confirm PIN
+                </label>
+                <input type="password"
+                       maxlength="4"
+                       inputmode="numeric"
+                       pattern="[0-9]*"
+                       class="form-input pin-input-field"
+                       placeholder="••••"
+                       @bind="confirmPin"
+                       @bind:event="oninput"
+                       @onkeyup="HandleKeyUp" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    @error
+                </div>
+            }
+
+            <button class="auth-button" @onclick="CompleteSetup">
+                Complete Setup
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string securityQuestion = "";
+    private string securityAnswer = "";
+    private string pin = "";
+    private string confirmPin = "";
+    private string error = "";
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await CompleteSetup();
+    }
+
+    private async Task CompleteSetup()
+    {
+        error = "";
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            error = "Please enter your username";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(securityQuestion))
+        {
+            error = "Please enter a security question";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(securityAnswer))
+        {
+            error = "Please provide an answer to your security question";
+            return;
+        }
+
+        if (pin.Length != 4 || !pin.All(char.IsDigit))
+        {
+            error = "PIN must be exactly 4 digits";
+            return;
+        }
+
+        if (pin != confirmPin)
+        {
+            error = "PINs do not match";
+            return;
+        }
+
+        try
+        {
+            await Security.SetupAccountAsync(username, pin, securityQuestion, securityAnswer);
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            error = "Setup failed. Please try again.";
+        }
+    }
+}

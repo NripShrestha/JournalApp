@@ -1,0 +1,188 @@
+﻿@page "/forgot-pin"
+@inject SecurityService Security
+@inject NavigationManager Nav
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo-section">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <h1 class="auth-title">Reset PIN</h1>
+            <p class="auth-subtitle">Answer your security question</p>
+        </div>
+
+        <div class="auth-form">
+            @if (!answerVerified)
+            {
+                <!-- Security Question Step -->
+                <div class="form-group">
+                    <label class="form-label security-question-label">
+                        <i class="bi bi-shield-lock"></i>
+                        @securityQuestion
+                    </label>
+                    <input type="text"
+                           class="form-input"
+                           placeholder="Your answer"
+                           @bind="securityAnswer"
+                           @bind:event="oninput"
+                           @onkeyup="HandleAnswerKeyUp" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-circle"></i>
+                        @error
+                    </div>
+                }
+
+                <button class="auth-button" @onclick="VerifyAnswer">
+                    Verify Answer
+                </button>
+            }
+            else
+            {
+                <!-- New PIN Step -->
+                <div class="success-message">
+                    <i class="bi bi-check-circle"></i>
+                    Answer verified! Set your new PIN
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-lock"></i>
+                        New 4-digit PIN
+                    </label>
+                    <input type="password"
+                           maxlength="4"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           class="form-input pin-input-field"
+                           placeholder="••••"
+                           @bind="newPin"
+                           @bind:event="oninput" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-lock-fill"></i>
+                        Confirm New PIN
+                    </label>
+                    <input type="password"
+                           maxlength="4"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           class="form-input pin-input-field"
+                           placeholder="••••"
+                           @bind="confirmPin"
+                           @bind:event="oninput"
+                           @onkeyup="HandlePinKeyUp" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-circle"></i>
+                        @error
+                    </div>
+                }
+
+                <button class="auth-button" @onclick="ResetPin">
+                    Reset PIN
+                </button>
+            }
+
+            <button class="auth-link-button" @onclick="GoToLogin">
+                <i class="bi bi-arrow-left"></i>
+                Back to Login
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string securityQuestion = "";
+    private string securityAnswer = "";
+    private string newPin = "";
+    private string confirmPin = "";
+    private string error = "";
+    private bool answerVerified = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        securityQuestion = await Security.GetSecurityQuestionAsync();
+        
+        if (string.IsNullOrEmpty(securityQuestion))
+        {
+            Nav.NavigateTo("/setup");
+        }
+    }
+
+    private async Task HandleAnswerKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await VerifyAnswer();
+    }
+
+    private async Task HandlePinKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await ResetPin();
+    }
+
+    private async Task VerifyAnswer()
+    {
+        error = "";
+
+        if (string.IsNullOrWhiteSpace(securityAnswer))
+        {
+            error = "Please enter your answer";
+            return;
+        }
+
+        if (await Security.VerifySecurityAnswerAsync(securityAnswer))
+        {
+            answerVerified = true;
+        }
+        else
+        {
+            error = "Incorrect answer. Please try again.";
+            securityAnswer = "";
+        }
+    }
+
+    private async Task ResetPin()
+    {
+        error = "";
+
+        if (newPin.Length != 4 || !newPin.All(char.IsDigit))
+        {
+            error = "PIN must be exactly 4 digits";
+            return;
+        }
+
+        if (newPin != confirmPin)
+        {
+            error = "PINs do not match";
+            return;
+        }
+
+        try
+        {
+            await Security.ResetPinAsync(newPin);
+            Nav.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            error = "Failed to reset PIN. Please try again.";
+        }
+    }
+
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login");
+    }
+}
