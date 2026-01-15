@@ -32,26 +32,13 @@
             <!-- Security Question -->
             <div class="form-group">
                 <label class="form-label">
-                    <i class="bi bi-shield-lock"></i>
-                    Security Question
+                    <i class="bi bi-building"></i>
+                    School Name
                 </label>
                 <input type="text"
                        class="form-input"
-                       placeholder="e.g., What is your college name?"
-                       @bind="securityQuestion"
-                       @bind:event="oninput" />
-            </div>
-
-            <!-- Security Answer -->
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="bi bi-key"></i>
-                    Answer
-                </label>
-                <input type="text"
-                       class="form-input"
-                       placeholder="Your answer"
-                       @bind="securityAnswer"
+                       placeholder="Enter your school name"
+                       @bind="schoolName"
                        @bind:event="oninput" />
             </div>
 
@@ -105,8 +92,7 @@
 
 @code {
     private string username = "";
-    private string securityQuestion = "";
-    private string securityAnswer = "";
+    private string schoolName = "";
     private string pin = "";
     private string confirmPin = "";
     private string error = "";
@@ -127,17 +113,13 @@
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(securityQuestion))
+        if (string.IsNullOrWhiteSpace(schoolName))
         {
-            error = "Please enter a security question";
+            error = "Please enter your school name";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(securityAnswer))
-        {
-            error = "Please provide an answer to your security question";
-            return;
-        }
+        
 
         if (pin.Length != 4 || !pin.All(char.IsDigit))
         {
@@ -153,8 +135,9 @@
 
         try
         {
-            await Security.SetupAccountAsync(username, pin, securityQuestion, securityAnswer);
+            await Security.SetupAccountAsync(username, pin, schoolName);
             Nav.NavigateTo("/");
+
         }
         catch (Exception ex)
         {

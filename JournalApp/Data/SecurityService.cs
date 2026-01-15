@@ -25,21 +25,27 @@ namespace JournalApp.Data
         }
 
         // Initial setup
-        public async Task SetupAccountAsync(string username, string pin, string securityQuestion, string securityAnswer)
+        public async Task SetupAccountAsync(string username, string pin, string schoolName)
         {
             await _db.SaveSecurityAsync(new AppSecurity
             {
                 Username = username,
                 PinHash = Hash(pin),
-                SecurityQuestion = securityQuestion,
-                SecurityAnswerHash = Hash(securityAnswer.ToLower().Trim()),
+                SchoolNameHash = Hash(schoolName.ToLower().Trim()),
                 CreatedAt = DateTime.Now
             });
 
             CurrentUsername = username;
             IsUnlocked = true;
         }
+        public async Task<bool> VerifySchoolNameAsync(string schoolName)
+        {
+            var sec = await _db.GetSecurityAsync();
+            if (sec == null) return false;
 
+            var hash = Hash(schoolName.ToLower().Trim());
+            return hash == sec.SchoolNameHash;
+        }
         // Login verification
         public async Task<bool> VerifyPinAsync(string pin)
         {
@@ -65,21 +71,7 @@ namespace JournalApp.Data
         }
 
         // Get security question
-        public async Task<string> GetSecurityQuestionAsync()
-        {
-            var sec = await _db.GetSecurityAsync();
-            return sec?.SecurityQuestion ?? string.Empty;
-        }
-
-        // Verify security answer
-        public async Task<bool> VerifySecurityAnswerAsync(string answer)
-        {
-            var sec = await _db.GetSecurityAsync();
-            if (sec == null) return false;
-
-            var hash = Hash(answer.ToLower().Trim());
-            return hash == sec.SecurityAnswerHash;
-        }
+       
 
         // Reset PIN after security question verification
         public async Task ResetPinAsync(string newPin)

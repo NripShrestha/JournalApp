@@ -13,7 +13,7 @@
                 </svg>
             </div>
             <h1 class="auth-title">Reset PIN</h1>
-            <p class="auth-subtitle">Answer your security question</p>
+            <p class="auth-subtitle">Verify using your school name</p>
         </div>
 
         <div class="auth-form">
@@ -21,14 +21,14 @@
             {
                 <!-- Security Question Step -->
                 <div class="form-group">
-                    <label class="form-label security-question-label">
-                        <i class="bi bi-shield-lock"></i>
-                        @securityQuestion
+                    <label class="form-label">
+                        <i class="bi bi-building"></i>
+                        School Name
                     </label>
                     <input type="text"
                            class="form-input"
-                           placeholder="Your answer"
-                           @bind="securityAnswer"
+                           placeholder="Enter your school name"
+                           @bind="schoolName"
                            @bind:event="oninput"
                            @onkeyup="HandleAnswerKeyUp" />
                 </div>
@@ -106,8 +106,8 @@
 </div>
 
 @code {
-    private string securityQuestion = "";
-    private string securityAnswer = "";
+    private string schoolName = "";
+
     private string newPin = "";
     private string confirmPin = "";
     private string error = "";
@@ -115,13 +115,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        securityQuestion = await Security.GetSecurityQuestionAsync();
-        
-        if (string.IsNullOrEmpty(securityQuestion))
+        var isSetupComplete = await Security.IsSetupCompleteAsync();
+
+        if (!isSetupComplete)
         {
             Nav.NavigateTo("/setup");
         }
     }
+
 
     private async Task HandleAnswerKeyUp(KeyboardEventArgs e)
     {
@@ -137,20 +138,20 @@
     {
         error = "";
 
-        if (string.IsNullOrWhiteSpace(securityAnswer))
+        if (string.IsNullOrWhiteSpace(schoolName))
         {
-            error = "Please enter your answer";
+            error = "Please enter your school name";
             return;
         }
 
-        if (await Security.VerifySecurityAnswerAsync(securityAnswer))
+        if (await Security.VerifySchoolNameAsync(schoolName))
         {
             answerVerified = true;
         }
         else
         {
-            error = "Incorrect answer. Please try again.";
-            securityAnswer = "";
+            error = "Verification failed. Please try again.";
+            schoolName = "";
         }
     }
 

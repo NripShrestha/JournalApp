@@ -11,9 +11,8 @@ namespace JournalApp.Models
 
         public string PinHash { get; set; } = string.Empty;
 
-        public string SecurityQuestion { get; set; } = string.Empty;
-
-        public string SecurityAnswerHash { get; set; } = string.Empty;
+        // NEW
+        public string SchoolNameHash { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; }
     }

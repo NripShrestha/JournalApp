@@ -27,6 +27,8 @@ namespace JournalApp
                 FileSystem.AppDataDirectory,
                 "journal.db"
             );
+            System.Diagnostics.Debug.WriteLine($"[DB PATH] {dbPath}");
+
 
             builder.Services.AddSingleton<AppDatabase>(
                 s => new AppDatabase(dbPath)
