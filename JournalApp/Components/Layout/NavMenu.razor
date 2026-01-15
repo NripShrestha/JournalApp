@@ -43,23 +43,33 @@
 </nav>
 
 @code {
-    private bool isDarkMode = false;
+    private bool isDarkMode;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+
+        var theme = await JS.InvokeAsync<string>("themeManager.get");
+
+        if (theme == "dark")
         {
-            await JS.InvokeVoidAsync("document.body.classList.remove", "dark");
+            isDarkMode = true;
+            await JS.InvokeVoidAsync("themeManager.apply", "dark");
         }
+        else
+        {
+            isDarkMode = false;
+            await JS.InvokeVoidAsync("themeManager.apply", "light");
+        }
+
+        StateHasChanged();
     }
 
     private async Task ToggleTheme()
     {
         isDarkMode = !isDarkMode;
 
-        if (isDarkMode)
-            await JS.InvokeVoidAsync("document.body.classList.add", "dark");
-        else
-            await JS.InvokeVoidAsync("document.body.classList.remove", "dark");
+        await JS.InvokeVoidAsync("themeManager.set", isDarkMode ? "dark" : "light");
+        await JS.InvokeVoidAsync("themeManager.apply", isDarkMode ? "dark" : "light");
     }
 }

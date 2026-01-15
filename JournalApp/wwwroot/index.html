@@ -17,6 +17,23 @@
     <div class="status-bar-safe-area"></div>
 
     <div id="app">Loading...</div>
+    <script>
+        window.themeManager = {
+            set: function (isDark) {
+                localStorage.setItem("theme", isDark ? "dark" : "light");
+            },
+            get: function () {
+                return localStorage.getItem("theme");
+            },
+            apply: function (theme) {
+                if (theme === "dark") {
+                    document.body.classList.add("dark");
+                } else {
+                    document.body.classList.remove("dark");
+                }
+            }
+        };
+    </script>
 
     <!--<div id="blazor-error-ui">
         An unhandled error has occurred.
