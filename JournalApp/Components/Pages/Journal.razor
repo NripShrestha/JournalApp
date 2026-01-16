@@ -1,9 +1,19 @@
 ﻿@page "/journal"
 @using JournalApp.Models
 @inject JournalApp.Data.AppDatabase Database
+@inject IJSRuntime JS
 @inject SecurityService Security
 @inject NavigationManager Nav
 
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillEditor.init", "editor");
+        }
+    }
+}
 <div class="journal-container">
     <div class="journal-grid">
 
@@ -51,11 +61,9 @@
 
                         <h4 class="card-title">@entry.Title</h4>
 
-                        <p class="card-excerpt">
-                            @(entry.Content.Length > 100
-                                                    ? entry.Content.Substring(0, 100) + "..."
-                                                    : entry.Content)
-                    </p>
+                            <div class="card-excerpt">
+                                @((MarkupString)entry.Content)
+                            </div>
 
                             <!-- Delete Button -->
                             <button type="button"
@@ -166,8 +174,8 @@
 
                 <!-- CONTENT -->
                 <div class="textarea-container">
-                    <textarea placeholder="Write your thoughts..."
-                              @bind="entryContent"></textarea>
+                    <div id="editor" class="quill-editor"></div>
+
                 </div>
 
                 <!-- VALIDATION MESSAGE -->
@@ -251,6 +259,8 @@
         entryContent = entry.Content;
         validationMessage = string.Empty;
 
+        await JS.InvokeVoidAsync("quillEditor.setHtml", entry.Content);
+
         // Load tags
         var tags = await Database.GetTagsForEntryAsync(entry.Id);
         selectedTagIds = tags.Select(t => t.Id).ToList();
@@ -269,6 +279,8 @@
     // Handles both create and update
     private async Task SaveTodayEntry()
     {
+        entryContent = await JS.InvokeAsync<string>("quillEditor.getHtml");
+
         // Validation
         validationMessage = string.Empty;
 
