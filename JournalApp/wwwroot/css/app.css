@@ -1483,3 +1483,553 @@ body.dark .security-question-label {
         font-size: 24px;
     }
 }
+/* Search Container */
+    .search-container {
+        margin-bottom: 1rem;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+        .search-input-wrapper i.bi-search {
+            position: absolute;
+            left: 12px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 40px 10px 38px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+    .search-clear {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+    }
+
+        .search-clear:hover {
+            color: #666;
+        }
+
+    /* Filter Container */
+    .filter-container {
+        margin-bottom: 1rem;
+    }
+
+    .filter-toggle {
+        width: 100%;
+        padding: 10px 14px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #333;
+        transition: all 0.2s;
+    }
+
+        .filter-toggle:hover {
+            background: #e9ecef;
+        }
+
+    .filter-badge {
+        margin-left: auto;
+        background: #6366f1;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Filter Panel */
+    .filter-panel {
+        margin-top: 1rem;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .filter-section {
+        margin-bottom: 1rem;
+    }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+    .filter-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        cursor: pointer;
+        font-weight: 500;
+        color: #333;
+    }
+
+        .filter-header i:last-child {
+            margin-left: auto;
+            font-size: 0.85rem;
+        }
+
+    .filter-content {
+        padding: 12px 0;
+    }
+
+    /* Date Inputs */
+    .date-inputs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .date-input-group {
+        flex: 1;
+        min-width: 0; /* Prevents input from pushing container width */
+    }
+
+        .date-input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+    .date-input {
+        width: 100%;
+        padding: 6px;
+        font-size: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+    /* Calendar Navigation */
+    .calendar-nav {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .calendar-nav-btn {
+        background: none;
+        border: none;
+        padding: 6px 10px;
+        cursor: pointer;
+        border-radius: 6px;
+        color: #666;
+        transition: all 0.2s;
+    }
+
+        .calendar-nav-btn:hover {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+    .calendar-month {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* Force 7 equal columns */
+        gap: 2px;
+        width: 100%;
+        margin-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .calendar-day-header {
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: #666;
+        padding: 5px 0;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1 / 1; /* Keeps days perfectly square */
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        font-size: 0.8rem;
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 0; /* Remove default padding causing overflow */
+        transition: background 0.2s;
+    }
+
+        .calendar-day:hover:not(:disabled) {
+            background-color: #e2e8f0;
+        }
+
+        .calendar-day.today {
+            font-weight: bold;
+            color: #6366f1;
+            text-decoration: underline;
+        }
+
+        .calendar-day.selected {
+            background-color: #6366f1 !important;
+            color: white;
+        }
+
+        .calendar-day.has-entry {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+
+            .calendar-day.has-entry:hover {
+                background: #bfdbfe;
+            }
+
+        .calendar-day.today {
+            border: 2px solid #6366f1;
+            font-weight: 700;
+            color: #6366f1;
+        }
+
+        .calendar-day.selected {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+            .calendar-day.selected:hover {
+                background: #4f46e5;
+            }
+
+    /* Filter Pills */
+    .filter-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .filter-pill {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .filter-pill:hover {
+            border-color: #6366f1;
+            background: #f0f1ff;
+        }
+
+        .filter-pill.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .filter-pill.mood-positive.active {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .filter-pill.mood-neutral.active {
+            background: #6b7280;
+            border-color: #6b7280;
+        }
+
+        .filter-pill.mood-negative.active {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+    /* Filter Mood Category */
+    .filter-mood-category {
+        margin-bottom: 1rem;
+    }
+
+        .filter-mood-category:last-child {
+            margin-bottom: 0;
+        }
+
+    .filter-category-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    /* Filter Actions */
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #ddd;
+    }
+
+    .btn-filter-apply,
+    .btn-filter-clear {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-filter-apply {
+        background: #6366f1;
+        color: white;
+        border: none;
+    }
+
+        .btn-filter-apply:hover {
+            background: #4f46e5;
+        }
+
+    .btn-filter-clear {
+        background: white;
+        color: #666;
+        border: 1px solid #ddd;
+    }
+
+        .btn-filter-clear:hover {
+            background: #f3f4f6;
+            border-color: #999;
+        }
+
+    /* Results Info */
+    .results-info {
+        padding: 8px 12px;
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #0369a1;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+/* SEARCH & FILTER – DARK MODE */
+
+body.dark .search-input {
+    background: #121212;
+    color: #e5e5e5;
+    border-color: #444;
+}
+
+    body.dark .search-input:focus {
+        border-color: #6366f1;
+    }
+
+    body.dark .search-input::placeholder {
+        color: #666;
+    }
+
+body.dark .search-input-wrapper i.bi-search {
+    color: #888;
+}
+
+body.dark .search-clear {
+    color: #777;
+}
+
+    body.dark .search-clear:hover {
+        color: #aaa;
+    }
+
+/* Filter Container */
+body.dark .filter-toggle {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e5e5e5;
+}
+
+    body.dark .filter-toggle:hover {
+        background: #2a2a2a;
+    }
+
+body.dark .filter-badge {
+    background: #6366f1;
+    color: #fff;
+}
+
+/* Filter Panel */
+body.dark .filter-panel {
+    background: #1a1a1a;
+    border-color: #444;
+}
+
+body.dark .filter-header {
+    color: #e5e5e5;
+}
+
+body.dark .filter-section {
+    border-color: #333;
+}
+
+/* Date Inputs */
+body.dark .date-input-group label {
+    color: #aaa;
+}
+
+body.dark .date-input {
+    background: #121212;
+    color: #e5e5e5;
+    border-color: #444;
+}
+
+    body.dark .date-input:focus {
+        border-color: #6366f1;
+    }
+
+/* Calendar */
+body.dark .calendar-nav {
+    background: #1a1a1a;
+    border-color: #333;
+}
+
+body.dark .calendar-month {
+    color: #e5e5e5;
+}
+
+body.dark .calendar-day-header {
+    color: #aaa;
+}
+
+body.dark .calendar-day {
+    color: #e5e5e5;
+}
+
+    body.dark .calendar-day:hover:not(:disabled) {
+        background: #2a2a2a;
+    }
+
+    body.dark .calendar-day.today {
+        border-color: #6366f1;
+        color: #6366f1;
+    }
+
+    body.dark .calendar-day.selected {
+        background: #6366f1;
+        color: #fff;
+    }
+
+    body.dark .calendar-day.has-entry {
+        background: #1e4620;
+        border-color: #2a5a2d;
+    }
+
+/* Filter Pills */
+body.dark .filter-pill {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e5e5e5;
+}
+
+    body.dark .filter-pill:hover {
+        background: #2a2a2a;
+        border-color: #6366f1;
+    }
+
+    body.dark .filter-pill.active {
+        background: #6366f1;
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    body.dark .filter-pill.mood-positive.active {
+        background: #10b981;
+        border-color: #10b981;
+    }
+
+    body.dark .filter-pill.mood-neutral.active {
+        background: #6b7280;
+        border-color: #6b7280;
+    }
+
+    body.dark .filter-pill.mood-negative.active {
+        background: #ef4444;
+        border-color: #ef4444;
+    }
+
+/* Filter Category Labels */
+body.dark .filter-category-label {
+    color: #aaa;
+}
+
+/* Filter Actions */
+body.dark .filter-actions {
+    border-top-color: #333;
+}
+
+body.dark .btn-filter-apply {
+    background: #6366f1;
+}
+
+    body.dark .btn-filter-apply:hover {
+        background: #4f46e5;
+    }
+
+body.dark .btn-filter-clear {
+    background: #1a1a1a;
+    color: #ccc;
+    border-color: #444;
+}
+
+    body.dark .btn-filter-clear:hover {
+        background: #2a2a2a;
+        border-color: #666;
+    }
+
+/* Results Info */
+body.dark .results-info {
+    background: #0c2a3a;
+    border-color: #164e63;
+    color: #7dd3fc;
+}
+

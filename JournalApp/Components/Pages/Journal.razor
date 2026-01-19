@@ -21,14 +21,193 @@
         <aside class="history-section">
             <h2 class="section-title">Journal History</h2>
 
-            <div class="history-scroll">
-                @if (entries.Count == 0)
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text"
+                           class="search-input"
+                           value="@searchQuery"
+                           @oninput="OnSearchChanged"
+                           placeholder="Search by title or content..." />
+                    @if (!string.IsNullOrEmpty(searchQuery))
+                    {
+                        <button class="search-clear" @onclick="ClearSearch">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-container">
+                <button class="filter-toggle" @onclick="ToggleFilterPanel">
+                    <i class="bi bi-funnel"></i>
+                    Filters
+                    @if (hasActiveFilters)
+                    {
+                        <span class="filter-badge">@activeFilterCount</span>
+                    }
+                </button>
+
+                @if (showFilterPanel)
                 {
-                    <div class="empty-state">No entries yet.</div>
+                    <div class="filter-panel">
+                        <!-- Date Range Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" @onclick="() => showDateFilter = !showDateFilter">
+                                <i class="bi bi-calendar-range"></i>
+                                <span>Date Range</span>
+                                <i class="bi @(showDateFilter ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                            </div>
+
+                            @if (showDateFilter)
+                            {
+                                <div class="filter-content">
+                                    <div class="date-inputs">
+                                        <div class="date-input-group">
+                                            <label>From:</label>
+                                            <input type="date"
+                                                   class="date-input"
+                                                   @bind="filterStartDate" />
+                                        </div>
+                                        <div class="date-input-group">
+                                            <label>To:</label>
+                                            <input type="date"
+                                                   class="date-input"
+                                                   @bind="filterEndDate" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Calendar Navigation -->
+                                    <div class="calendar-nav">
+                                        <div class="calendar-header">
+                                            <button @onclick="PreviousMonth" class="calendar-nav-btn">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                            <span class="calendar-month">@currentCalendarDate.ToString("MMMM yyyy")</span>
+                                            <button @onclick="NextMonth" class="calendar-nav-btn">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="calendar-day-header">Su</div>
+                                            <div class="calendar-day-header">Mo</div>
+                                            <div class="calendar-day-header">Tu</div>
+                                            <div class="calendar-day-header">We</div>
+                                            <div class="calendar-day-header">Th</div>
+                                            <div class="calendar-day-header">Fr</div>
+                                            <div class="calendar-day-header">Sa</div>
+
+                                            @foreach (var day in GetCalendarDays())
+                                            {
+                                                <button class="calendar-day @GetDayClass(day)"
+                                                        @onclick="() => SelectCalendarDate(day)"
+                                                        disabled="@(!day.HasValue)">
+                                                    @(day?.Day.ToString() ?? "")
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Mood Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" @onclick="() => showMoodFilter = !showMoodFilter">
+                                <i class="bi bi-emoji-smile"></i>
+                                <span>Moods</span>
+                                <i class="bi @(showMoodFilter ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                            </div>
+
+                            @if (showMoodFilter)
+                            {
+                                <div class="filter-content">
+                                    @foreach (var category in new[] { "Positive", "Neutral", "Negative" })
+                                    {
+                                        var categoryMoods = allMoods.Where(m => m.Category == category).ToList();
+                                        <div class="filter-mood-category">
+                                            <div class="filter-category-label">@category</div>
+                                            <div class="filter-pills">
+                                                @foreach (var mood in categoryMoods)
+                                                {
+                                                    <button type="button"
+                                                            class="filter-pill @(filterMoodIds.Contains(mood.Id) ? "active" : "") @GetMoodColorClass(mood.Category)"
+                                                            @onclick="() => ToggleFilterMood(mood.Id)">
+                                                        @mood.Name
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Tag Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" @onclick="() => showTagFilter = !showTagFilter">
+                                <i class="bi bi-tags"></i>
+                                <span>Tags</span>
+                                <i class="bi @(showTagFilter ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                            </div>
+
+                            @if (showTagFilter)
+                            {
+                                <div class="filter-content">
+                                    <div class="filter-pills">
+                                        @foreach (var tag in allTags)
+                                        {
+                                            <button type="button"
+                                                    class="filter-pill @(filterTagIds.Contains(tag.Id) ? "active" : "")"
+                                                    @onclick="() => ToggleFilterTag(tag.Id)">
+                                                @tag.Name
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="filter-actions">
+                            <button class="btn-filter-apply" @onclick="ApplyFilters">
+                                Apply Filters
+                            </button>
+                            <button class="btn-filter-clear" @onclick="ClearAllFilters">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Results Info -->
+            @if (hasActiveFilters || !string.IsNullOrEmpty(searchQuery))
+            {
+                <div class="results-info">
+                    Showing @filteredEntries.Count of @entries.Count entries
+                </div>
+            }
+
+            <div class="history-scroll">
+                @if (filteredEntries.Count == 0)
+                {
+                    <div class="empty-state">
+                        @if (hasActiveFilters || !string.IsNullOrEmpty(searchQuery))
+                        {
+                            <span>No entries match your search/filter criteria.</span>
+                        }
+                        else
+                        {
+                            <span>No entries yet.</span>
+                        }
+                    </div>
                 }
                 else
                 {
-                    @foreach (var entry in entries)
+                    @foreach (var entry in filteredEntries)
                     {
                         <div class="history-card"
                              @key="entry.Id"
@@ -57,9 +236,9 @@
                                         </span>
                                     }
                                 }
-                        </div>
+                            </div>
 
-                        <h4 class="card-title">@entry.Title</h4>
+                            <h4 class="card-title">@entry.Title</h4>
 
                             <div class="card-excerpt">
                                 @((MarkupString)entry.Content)
@@ -74,7 +253,7 @@
                             </button>
 
                         </div>
-                                }
+                    }
                 }
             </div>
         </aside>
@@ -175,7 +354,6 @@
                 <!-- CONTENT -->
                 <div class="textarea-container">
                     <div id="editor" class="quill-editor"></div>
-
                 </div>
 
                 <!-- VALIDATION MESSAGE -->
@@ -219,6 +397,7 @@
     private JournalEntry? editingEntry = null;
 
     private List<JournalEntry> entries = new();
+    private List<JournalEntry> filteredEntries = new();
     private List<Tag> allTags = new();
     private List<Mood> allMoods = new();
 
@@ -229,25 +408,227 @@
     private Dictionary<int, List<Tag>> entryTags = new();
     private Dictionary<int, List<Mood>> entryMoods = new();
 
+    // Search & Filter variables
+    private string searchQuery = string.Empty;
+    private bool showFilterPanel = false;
+    private bool showDateFilter = true;
+    private bool showMoodFilter = false;
+    private bool showTagFilter = false;
+
+    private DateTime? filterStartDate = null;
+    private DateTime? filterEndDate = null;
+    private List<int> filterMoodIds = new();
+    private List<int> filterTagIds = new();
+
+    // Calendar navigation
+    private DateTime currentCalendarDate = DateTime.Today;
+    private HashSet<DateTime> entryDates = new();
+
+    private bool hasActiveFilters => filterStartDate.HasValue || filterEndDate.HasValue || filterMoodIds.Count > 0 || filterTagIds.Count > 0;
+    private int activeFilterCount => (filterStartDate.HasValue ? 1 : 0) + (filterEndDate.HasValue ? 1 : 0) + (filterMoodIds.Count > 0 ? 1 : 0) + (filterTagIds.Count > 0 ? 1 : 0);
+
     protected override async Task OnInitializedAsync()
     {
         allTags = await Database.GetTagsAsync();
         allMoods = await Database.GetMoodsAsync();
         await LoadEntries();
-        
     }
 
     private async Task LoadEntries()
     {
         entries = await Database.GetEntriesAsync();
+        filteredEntries = entries;
 
         entryTags.Clear();
         entryMoods.Clear();
+        entryDates.Clear();
 
         foreach (var entry in entries)
         {
             entryTags[entry.Id] = await Database.GetTagsForEntryAsync(entry.Id);
             entryMoods[entry.Id] = await Database.GetMoodsForEntryAsync(entry.Id);
+            entryDates.Add(entry.EntryDate.Date);
+        }
+    }
+
+    // Search functionality
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        await ApplyFilters();
+    }
+
+    private async Task ClearSearch()
+    {
+        searchQuery = string.Empty;
+        await ApplyFilters();
+    }
+
+    // Filter panel
+    private void ToggleFilterPanel()
+    {
+        showFilterPanel = !showFilterPanel;
+    }
+
+    private void ToggleFilterMood(int moodId)
+    {
+        if (filterMoodIds.Contains(moodId))
+            filterMoodIds.Remove(moodId);
+        else
+            filterMoodIds.Add(moodId);
+    }
+
+    private void ToggleFilterTag(int tagId)
+    {
+        if (filterTagIds.Contains(tagId))
+            filterTagIds.Remove(tagId);
+        else
+            filterTagIds.Add(tagId);
+    }
+
+    private async Task ApplyFilters()
+    {
+        var result = entries.AsEnumerable();
+
+        // Apply search
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var query = searchQuery.ToLower();
+            result = result.Where(e =>
+                e.Title.ToLower().Contains(query) ||
+                e.Content.ToLower().Contains(query));
+        }
+
+        // Apply date filters
+        if (filterStartDate.HasValue)
+            result = result.Where(e => e.EntryDate.Date >= filterStartDate.Value.Date);
+
+        if (filterEndDate.HasValue)
+            result = result.Where(e => e.EntryDate.Date <= filterEndDate.Value.Date);
+
+        // Apply mood filters
+        if (filterMoodIds.Count > 0)
+        {
+            var tempResult = new List<JournalEntry>();
+            foreach (var entry in result)
+            {
+                var moods = entryMoods.GetValueOrDefault(entry.Id, new List<Mood>());
+                if (moods.Any(m => filterMoodIds.Contains(m.Id)))
+                {
+                    tempResult.Add(entry);
+                }
+            }
+            result = tempResult;
+        }
+
+        // Apply tag filters
+        if (filterTagIds.Count > 0)
+        {
+            var tempResult = new List<JournalEntry>();
+            foreach (var entry in result)
+            {
+                var tags = entryTags.GetValueOrDefault(entry.Id, new List<Tag>());
+                if (tags.Any(t => filterTagIds.Contains(t.Id)))
+                {
+                    tempResult.Add(entry);
+                }
+            }
+            result = tempResult;
+        }
+
+        filteredEntries = result.OrderByDescending(e => e.CreatedAt).ToList();
+    }
+
+    private async Task ClearAllFilters()
+    {
+        filterStartDate = null;
+        filterEndDate = null;
+        filterMoodIds.Clear();
+        filterTagIds.Clear();
+        searchQuery = string.Empty;
+        await ApplyFilters();
+    }
+
+    // Calendar navigation methods
+    private void PreviousMonth()
+    {
+        currentCalendarDate = currentCalendarDate.AddMonths(-1);
+    }
+
+    private void NextMonth()
+    {
+        currentCalendarDate = currentCalendarDate.AddMonths(1);
+    }
+
+    private List<DateTime?> GetCalendarDays()
+    {
+        var days = new List<DateTime?>();
+        var firstDayOfMonth = new DateTime(currentCalendarDate.Year, currentCalendarDate.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+        // Add empty days for the start of the week
+        var startDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        for (int i = 0; i < startDayOfWeek; i++)
+        {
+            days.Add(null);
+        }
+
+        // Add all days of the month
+        for (int day = 1; day <= lastDayOfMonth.Day; day++)
+        {
+            days.Add(new DateTime(currentCalendarDate.Year, currentCalendarDate.Month, day));
+        }
+
+        return days;
+    }
+
+    private string GetDayClass(DateTime? day)
+    {
+        if (!day.HasValue) return "";
+
+        var classes = new List<string>();
+
+        if (entryDates.Contains(day.Value.Date))
+            classes.Add("has-entry");
+
+        if (day.Value.Date == DateTime.Today)
+            classes.Add("today");
+
+        if (filterStartDate.HasValue && day.Value.Date == filterStartDate.Value.Date)
+            classes.Add("selected");
+
+        if (filterEndDate.HasValue && day.Value.Date == filterEndDate.Value.Date)
+            classes.Add("selected");
+
+        return string.Join(" ", classes);
+    }
+
+    private async Task SelectCalendarDate(DateTime? day)
+    {
+        if (!day.HasValue) return;
+
+        // Toggle date selection for filtering
+        if (filterStartDate.HasValue && filterEndDate.HasValue)
+        {
+            // Reset if both are set
+            filterStartDate = day.Value;
+            filterEndDate = null;
+        }
+        else if (filterStartDate.HasValue && !filterEndDate.HasValue)
+        {
+            if (day.Value < filterStartDate.Value)
+            {
+                filterEndDate = filterStartDate;
+                filterStartDate = day.Value;
+            }
+            else
+            {
+                filterEndDate = day.Value;
+            }
+        }
+        else
+        {
+            filterStartDate = day.Value;
         }
     }
 
@@ -347,6 +728,7 @@
         // Clear form
         ClearForm();
         await LoadEntries();
+        await ApplyFilters();
     }
 
     // Clear form helper
@@ -400,6 +782,7 @@
 
         await Database.DeleteEntryAsync(entry);
         await LoadEntries();
+        await ApplyFilters();
     }
 
     private string GetMoodColorClass(string category)
