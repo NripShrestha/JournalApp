@@ -1,4 +1,4 @@
-﻿@page "/journal"
+﻿@page "/journal" 
 @using JournalApp.Models
 @inject JournalApp.Data.AppDatabase Database
 @inject IJSRuntime JS
@@ -28,13 +28,14 @@
                     <input type="text"
                            class="search-input"
                            value="@searchQuery"
-                           @oninput="OnSearchChanged"
-                           placeholder="Search by title or content..." />
+                           @oninput="OnSearchChanged" 
+                           placeholder="Search by title or content..." /><!--runs every keystroke-->
                     @if (!string.IsNullOrEmpty(searchQuery))
                     {
                         <button class="search-clear" @onclick="ClearSearch">
                             <i class="bi bi-x-circle-fill"></i>
                         </button>
+                        @* to show the button if user has typed something *@
                     }
                 </div>
             </div>
@@ -452,7 +453,7 @@
     }
 
     // Search functionality
-    private async Task OnSearchChanged(ChangeEventArgs e)
+    private async Task OnSearchChanged(ChangeEventArgs e) //if e.Value is null then result is null
     {
         searchQuery = e.Value?.ToString() ?? string.Empty;
         await ApplyFilters();
