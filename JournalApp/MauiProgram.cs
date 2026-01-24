@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using JournalApp.Data;
+﻿using JournalApp.Data;
+using JournalApp.Services; // Add this
+using Microsoft.Extensions.Logging;
 
 namespace JournalApp
 {
@@ -18,17 +19,18 @@ namespace JournalApp
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddSingleton<SecurityService>();
 
+            // Add PDF Export Service
+            builder.Services.AddSingleton<PdfExportService>();
+
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();
 #endif
-
             string dbPath = Path.Combine(
                 FileSystem.AppDataDirectory,
                 "journal.db"
             );
             System.Diagnostics.Debug.WriteLine($"[DB PATH] {dbPath}");
-
 
             builder.Services.AddSingleton<AppDatabase>(
                 s => new AppDatabase(dbPath)

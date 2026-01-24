@@ -1,9 +1,11 @@
-﻿@page "/journal" 
+﻿@page "/journal"
 @using JournalApp.Models
+@using JournalApp.Services
 @inject JournalApp.Data.AppDatabase Database
 @inject IJSRuntime JS
 @inject SecurityService Security
 @inject NavigationManager Nav
+@inject PdfExportService PdfExport
 
 <div class="journal-container">
     <div class="journal-grid">
@@ -286,6 +288,90 @@
                         </button>
                     </div>
                 </div>
+                <!-- Export Section -->
+<div class="export-container">
+    <button class="export-toggle" @onclick="ToggleExportPanel">
+        <i class="bi bi-file-earmark-pdf"></i>
+        Export to PDF
+    </button>
+
+    @if (showExportPanel)
+    {
+        <div class="export-panel">
+            <h3 class="export-title">Select Date Range</h3>
+            
+            <!-- Export Calendar -->
+            <div class="calendar-nav">
+                <div class="calendar-header">
+                    <button @onclick="PreviousExportMonth" class="calendar-nav-btn">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span class="calendar-month">@currentExportCalendarDate.ToString("MMMM yyyy")</span>
+                    <button @onclick="NextExportMonth" class="calendar-nav-btn">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Su</div>
+                    <div class="calendar-day-header">Mo</div>
+                    <div class="calendar-day-header">Tu</div>
+                    <div class="calendar-day-header">We</div>
+                    <div class="calendar-day-header">Th</div>
+                    <div class="calendar-day-header">Fr</div>
+                    <div class="calendar-day-header">Sa</div>
+
+                    @foreach (var day in GetExportCalendarDays())
+                    {
+                        <button class="calendar-day @GetExportDayClass(day)"
+                                @onclick="() => SelectExportDate(day)"
+                                disabled="@(!day.HasValue)">
+                            @(day?.Day.ToString() ?? "")
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (exportStartDate.HasValue || exportEndDate.HasValue)
+            {
+                <div class="export-date-display">
+                    @if (exportStartDate.HasValue)
+                    {
+                        <span>From: @exportStartDate.Value.ToString("MMM dd, yyyy")</span>
+                    }
+                    @if (exportEndDate.HasValue)
+                    {
+                        <span>To: @exportEndDate.Value.ToString("MMM dd, yyyy")</span>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(exportMessage))
+            {
+                <div class="export-message @(exportMessage.Contains("success") ? "success" : "error")">
+                    @exportMessage
+                </div>
+            }
+
+            <div class="export-actions">
+                <button class="btn-export" 
+                        @onclick="ExportToPdf"
+                        disabled="@(isExporting || !exportStartDate.HasValue || !exportEndDate.HasValue)">
+                    @if (isExporting)
+                    {
+                        <span>Exporting...</span>
+                    }
+                    else
+                    {
+                        <span><i class="bi bi-download"></i> Export PDF</span>
+                    }
+                </button>
+                <button class="btn-export-cancel" @onclick="ToggleExportPanel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+</div>
             }
             </aside>
 
@@ -420,6 +506,12 @@
 </div>
 
 @code {
+    private bool showExportPanel = false;
+    private DateTime? exportStartDate = null;
+    private DateTime? exportEndDate = null;
+    private DateTime currentExportCalendarDate = DateTime.Today;
+    private bool isExporting = false;
+    private string exportMessage = string.Empty;
     private string entryTitle = string.Empty;
     private string entryContent = string.Empty;
     private string validationMessage = string.Empty;
@@ -467,6 +559,135 @@
     private bool hasActiveFilters => filterStartDate.HasValue || filterEndDate.HasValue || filterMoodIds.Count > 0 || filterTagIds.Count > 0;
     private int activeFilterCount => (filterStartDate.HasValue ? 1 : 0) + (filterEndDate.HasValue ? 1 : 0) + (filterMoodIds.Count > 0 ? 1 : 0) + (filterTagIds.Count > 0 ? 1 : 0);
 
+    // Export methods
+private void ToggleExportPanel()
+{
+    showExportPanel = !showExportPanel;
+    exportMessage = string.Empty;
+}
+
+private void PreviousExportMonth()
+{
+    currentExportCalendarDate = currentExportCalendarDate.AddMonths(-1);
+}
+
+private void NextExportMonth()
+{
+    currentExportCalendarDate = currentExportCalendarDate.AddMonths(1);
+}
+
+private List<DateTime?> GetExportCalendarDays()
+{
+    var days = new List<DateTime?>();
+    var firstDayOfMonth = new DateTime(currentExportCalendarDate.Year, currentExportCalendarDate.Month, 1);
+    var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+    var startDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+    for (int i = 0; i < startDayOfWeek; i++)
+    {
+        days.Add(null);
+    }
+
+    for (int day = 1; day <= lastDayOfMonth.Day; day++)
+    {
+        days.Add(new DateTime(currentExportCalendarDate.Year, currentExportCalendarDate.Month, day));
+    }
+
+    return days;
+}
+
+private string GetExportDayClass(DateTime? day)
+{
+    if (!day.HasValue) return "";
+
+    var classes = new List<string>();
+
+    if (entryDates.Contains(day.Value.Date))
+        classes.Add("has-entry");
+
+    if (exportStartDate.HasValue && day.Value.Date == exportStartDate.Value.Date)
+        classes.Add("selected");
+
+    if (exportEndDate.HasValue && day.Value.Date == exportEndDate.Value.Date)
+        classes.Add("selected");
+
+    if (exportStartDate.HasValue && exportEndDate.HasValue &&
+        day.Value.Date > exportStartDate.Value.Date && day.Value.Date < exportEndDate.Value.Date)
+        classes.Add("in-range");
+
+    return string.Join(" ", classes);
+}
+
+private void SelectExportDate(DateTime? day)
+{
+    if (!day.HasValue) return;
+
+    if (exportStartDate.HasValue && exportEndDate.HasValue)
+    {
+        exportStartDate = day.Value;
+        exportEndDate = null;
+    }
+    else if (exportStartDate.HasValue && !exportEndDate.HasValue)
+    {
+        if (day.Value < exportStartDate.Value)
+        {
+            exportEndDate = exportStartDate;
+            exportStartDate = day.Value;
+        }
+        else
+        {
+            exportEndDate = day.Value;
+        }
+    }
+    else
+    {
+        exportStartDate = day.Value;
+    }
+
+    exportMessage = string.Empty;
+}
+
+private async Task ExportToPdf()
+{
+    if (!exportStartDate.HasValue || !exportEndDate.HasValue)
+    {
+        exportMessage = "Please select both start and end dates.";
+        return;
+    }
+
+    isExporting = true;
+    exportMessage = string.Empty;
+
+    try
+    {
+        var filePath = await PdfExport.ExportEntriesToPdfAsync(
+            exportStartDate.Value,
+            exportEndDate.Value
+        );
+
+        // Open the PDF file
+        await Launcher.OpenAsync(new OpenFileRequest
+        {
+            File = new ReadOnlyFile(filePath)
+        });
+
+        exportMessage = "PDF exported successfully!";
+        
+        // Clear selection after successful export
+        await Task.Delay(2000);
+        exportStartDate = null;
+        exportEndDate = null;
+        showExportPanel = false;
+    }
+    catch (Exception ex)
+    {
+        exportMessage = $"Export failed: {ex.Message}";
+    }
+    finally
+    {
+        isExporting = false;
+    }
+}
     protected override async Task OnInitializedAsync()
     {
         allTags = await Database.GetTagsAsync();
