@@ -26,10 +26,10 @@
     <script>
         window.themeManager = {
             set: function (isDark) {
-                localStorage.setItem("theme", isDark ? "dark" : "light");
+                localStorage.setItem("theme-session", isDark ? "dark" : "light");
             },
             get: function () {
-                return localStorage.getItem("theme");
+                return localStorage.getItem("theme-session");
             },
             apply: function (theme) {
                 if (theme === "dark") {
@@ -37,9 +37,13 @@
                 } else {
                     document.body.classList.remove("dark");
                 }
+            },
+            clear: function () {
+                localStorage.removeItem("theme-session");
             }
         };
     </script>
+
 
     <!--<div id="blazor-error-ui">
         An unhandled error has occurred.
