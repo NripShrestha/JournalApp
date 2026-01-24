@@ -2280,6 +2280,115 @@ body.dark .pagination-ellipsis {
 
 
 
+/* Streak Cards */
+.streak-card {
+    text-align: center;
+    position: relative;
+}
+
+.streak-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color, #4a90e2);
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #666);
+    margin: 0;
+}
+
+/* Missed Days List */
+.missed-days-list {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+    .missed-days-list h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        color: var(--text-primary, #333);
+    }
+
+.missed-days-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.missed-day-pill {
+    padding: 0.4rem 0.8rem;
+    background: var(--danger-light, #fee);
+    color: var(--danger-color, #e74c3c);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.missed-days-note {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+    font-style: italic;
+}
+/* Dark Theme for Missed Days Section */
+body.dark .missed-days-list {
+    background: #1e1e1e; /* Deep charcoal background */
+    border: 1px solid #333;
+}
+
+    body.dark .missed-days-list h4 {
+        color: #e0e0e0; /* Off-white for readability */
+    }
+
+body.dark .missed-day-pill {
+    /* Subtle dark red background for the pill */
+    background: rgba(231, 76, 60, 0.15);
+    /* Brighter red for the text to pop against dark background */
+    color: #ff6b6b;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+    body.dark .missed-day-pill:hover {
+        background: rgba(231, 76, 60, 0.25);
+    }
+
+body.dark .missed-days-note {
+    color: #999; /* Muted grey for the "and X more" note */
+}
+
+/* Streak Card Stats adjustment for Dark Mode */
+body.dark .stat-label {
+    color: #aaa;
+}
+
+body.dark .stat-number {
+    color: #60a5fa; /* Slightly lighter blue for dark mode visibility */
+}
+
+
+
+
+
+
 
 
 

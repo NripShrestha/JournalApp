@@ -467,5 +467,132 @@
                     await _database.UpdateAsync(existing);
                 }
             }
+        // Word Count Analytics
+        public async Task<Dictionary<DateTime, int>> GetWordCountTrendsAsync(DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var allEntries = await _database.Table<JournalEntry>().ToListAsync();
+
+            if (startDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate >= startDate.Value.Date).ToList();
+
+            if (endDate.HasValue)
+                allEntries = allEntries.Where(e => e.EntryDate <= endDate.Value.Date).ToList();
+
+            var wordCountByDate = new Dictionary<DateTime, int>();
+
+            foreach (var entry in allEntries.OrderBy(e => e.EntryDate))
+            {
+                // Strip HTML tags and count words
+                var plainText = System.Text.RegularExpressions.Regex.Replace(entry.Content, "<.*?>", " ");
+                var words = plainText.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                var wordCount = words.Length;
+
+                wordCountByDate[entry.EntryDate.Date] = wordCount;
+            }
+
+            return wordCountByDate;
         }
+
+        public async Task<double> GetAverageWordCountAsync(DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var wordCounts = await GetWordCountTrendsAsync(startDate, endDate);
+
+            if (wordCounts.Count == 0)
+                return 0;
+
+            return Math.Round(wordCounts.Values.Average(), 1);
+        }
+        public async Task<int> GetCurrentStreakAsync()
+        {
+            var allEntries = await _database.Table<JournalEntry>()
+                .OrderByDescending(e => e.EntryDate)
+                .ToListAsync();
+
+            if (allEntries.Count == 0)
+                return 0;
+
+            var today = DateTime.Today;
+            var streak = 0;
+
+            // Check if there's an entry today or yesterday (to allow for late-night entries)
+            var mostRecentEntry = allEntries.First().EntryDate.Date;
+            if (mostRecentEntry != today && mostRecentEntry != today.AddDays(-1))
+                return 0; // Streak is broken
+
+            // Count consecutive days backwards from most recent entry
+            var currentDate = mostRecentEntry;
+            foreach (var entry in allEntries)
+            {
+                if (entry.EntryDate.Date == currentDate)
+                {
+                    streak++;
+                    currentDate = currentDate.AddDays(-1);
+                }
+                else if (entry.EntryDate.Date < currentDate)
+                {
+                    // Check if there's a gap
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        public async Task<int> GetLongestStreakAsync()
+        {
+            var allEntries = await _database.Table<JournalEntry>()
+                .OrderBy(e => e.EntryDate)
+                .ToListAsync();
+
+            if (allEntries.Count == 0)
+                return 0;
+
+            int longestStreak = 1;
+            int currentStreak = 1;
+
+            for (int i = 1; i < allEntries.Count; i++)
+            {
+                var daysDifference = (allEntries[i].EntryDate.Date - allEntries[i - 1].EntryDate.Date).Days;
+
+                if (daysDifference == 1)
+                {
+                    currentStreak++;
+                    longestStreak = Math.Max(longestStreak, currentStreak);
+                }
+                else
+                {
+                    currentStreak = 1;
+                }
+            }
+
+            return longestStreak;
+        }
+
+        public async Task<List<DateTime>> GetMissedDaysAsync(DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var allEntries = await _database.Table<JournalEntry>()
+                .OrderBy(e => e.EntryDate)
+                .ToListAsync();
+
+            if (allEntries.Count == 0)
+                return new List<DateTime>();
+
+            var start = startDate ?? allEntries.First().EntryDate.Date;
+            var end = endDate ?? DateTime.Today;
+
+            var entryDates = allEntries.Select(e => e.EntryDate.Date).ToHashSet();
+            var missedDays = new List<DateTime>();
+
+            for (var date = start; date <= end; date = date.AddDays(1))
+            {
+                if (!entryDates.Contains(date))
+                {
+                    missedDays.Add(date);
+                }
+            }
+
+            return missedDays;
+        }
+    }
+
     }

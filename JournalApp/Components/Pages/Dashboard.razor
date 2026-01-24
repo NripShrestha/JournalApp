@@ -4,7 +4,7 @@
 @inject IJSRuntime JSRuntime
 
 <div class="moods-container">
-    <h1 class="page-title">Mood Tracking & Analytics</h1>
+    <h1 class="page-title">Analytics & Insights</h1>
 
     <!-- Date Range Filter -->
     <div class="filter-section">
@@ -21,6 +21,54 @@
             <button class="btn-filter" @onclick="ApplyFilters">Apply</button>
             <button class="btn-filter" @onclick="ClearFilters">Clear</button>
         </div>
+    </div>
+
+    <!-- Streak Tracking Section -->
+    <div class="analytics-section">
+        <h2>Journaling Streaks</h2>
+
+        <div class="stats-grid">
+            <!-- Current Streak -->
+            <div class="stat-card streak-card">
+                <div class="streak-icon">🔥</div>
+                <h4>Current Streak</h4>
+                <div class="stat-number">@currentStreak</div>
+                <p class="stat-label">@(currentStreak == 1 ? "day" : "days")</p>
+            </div>
+
+            <!-- Longest Streak -->
+            <div class="stat-card streak-card">
+                <div class="streak-icon">🏆</div>
+                <h4>Longest Streak</h4>
+                <div class="stat-number">@longestStreak</div>
+                <p class="stat-label">@(longestStreak == 1 ? "day" : "days")</p>
+            </div>
+
+            <!-- Missed Days -->
+            <div class="stat-card streak-card">
+                <div class="streak-icon">📅</div>
+                <h4>Missed Days</h4>
+                <div class="stat-number">@missedDays.Count</div>
+                <p class="stat-label">@(startDate.HasValue || endDate.HasValue ? "in range" : "total")</p>
+            </div>
+        </div>
+
+        @if (missedDays.Count > 0 && missedDays.Count <= 10)
+        {
+            <div class="missed-days-list">
+                <h4>Recent Missed Days:</h4>
+                <div class="missed-days-pills">
+                    @foreach (var day in missedDays.Take(10).OrderByDescending(d => d))
+                    {
+                        <span class="missed-day-pill">@day.ToString("MMM dd, yyyy")</span>
+                    }
+                </div>
+                @if (missedDays.Count > 10)
+                {
+                    <p class="missed-days-note">... and @(missedDays.Count - 10) more</p>
+                }
+            </div>
+        }
     </div>
 
     <!-- Analytics Dashboard -->
@@ -57,6 +105,13 @@
                 {
                     <p>No mood data available</p>
                 }
+            </div>
+
+            <!-- Average Word Count -->
+            <div class="stat-card">
+                <h4>Average Word Count</h4>
+                <div class="stat-number">@averageWordCount.ToString("F1")</div>
+                <p class="stat-label">words per entry</p>
             </div>
         </div>
     </div>
@@ -145,10 +200,18 @@
 
     private DateTime? startDate;
     private DateTime? endDate;
+    private double averageWordCount;
+
+    // Streak tracking variables
+    private int currentStreak;
+    private int longestStreak;
+    private List<DateTime> missedDays = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMoodData();
+        await LoadWordCountData();
+        await LoadStreakData();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -157,6 +220,30 @@
         {
             await RenderPieChart();
         }
+    }
+
+    private async Task RenderPieChart()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("dashboardCharts.renderMoodPie", moodDistribution);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error rendering chart: {ex.Message}");
+        }
+    }
+
+    private async Task LoadStreakData()
+    {
+        currentStreak = await Database.GetCurrentStreakAsync();
+        longestStreak = await Database.GetLongestStreakAsync();
+        missedDays = await Database.GetMissedDaysAsync(startDate, endDate);
+    }
+
+    private async Task LoadWordCountData()
+    {
+        averageWordCount = await Database.GetAverageWordCountAsync(startDate, endDate);
     }
 
     private async Task LoadMoodData()
@@ -186,21 +273,11 @@
         mostFrequentMood = await Database.GetMostFrequentMoodAsync(startDate, endDate);
     }
 
-    private async Task RenderPieChart()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("dashboardCharts.renderMoodPie", moodDistribution);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error rendering chart: {ex.Message}");
-        }
-    }
-
     private async Task ApplyFilters()
     {
         await LoadMoodData();
+        await LoadWordCountData();
+        await LoadStreakData();
         await RenderPieChart();
     }
 
@@ -209,6 +286,8 @@
         startDate = null;
         endDate = null;
         await LoadMoodData();
+        await LoadWordCountData();
+        await LoadStreakData();
         await RenderPieChart();
     }
 
@@ -222,7 +301,6 @@
         {
             if (entryMoods.TryGetValue(entry.Id, out var moods))
             {
-                // Check if any primary mood matches the category
                 if (entryMoodLinks.TryGetValue(entry.Id, out var links))
                 {
                     var primaryMoodLink = links.FirstOrDefault(l => l.IsPrimary);
