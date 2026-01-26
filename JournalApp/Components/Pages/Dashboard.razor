@@ -188,6 +188,65 @@
             }
         }
     </div>
+
+    <!-- Tag Analytics Section -->
+    <div class="analytics-section tag-analytics">
+        <h2>Tag Analytics</h2>
+
+        <div class="stats-grid">
+            <!-- Most Used Tags -->
+            <div class="stat-card">
+                <h4>Most Used Tags</h4>
+                @if (mostUsedTags != null && mostUsedTags.Any())
+                {
+                    <div class="tag-list">
+                        @foreach (var tag in mostUsedTags.Take(10))
+                        {
+                            <div class="tag-item">
+                                <span class="tag-name">@tag.Key</span>
+                                <span class="tag-count">@tag.Value</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="empty-message">No tags used yet</p>
+                }
+            </div>
+
+            <!-- Tag Breakdown Bar Chart -->
+            <div class="stat-card tag-breakdown-card">
+                <h4>Tag Distribution</h4>
+                @if (mostUsedTags != null && mostUsedTags.Any())
+                {
+                    <div class="tag-breakdown">
+                        @{
+                            var maxCount = mostUsedTags.Max(t => t.Value);
+                            var topTags = mostUsedTags.Take(8);
+                        }
+                        @foreach (var tag in topTags)
+                        {
+                            var percentage = maxCount > 0 ? (tag.Value * 100.0 / maxCount) : 0;
+                            <div class="bar-item">
+                                <div class="bar-label">
+                                    <span class="bar-tag-name">@tag.Key</span>
+                                    <span class="bar-tag-count">@tag.Value</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill bar-tag" style="width: @percentage%"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="empty-message">No tag data available</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
@@ -207,11 +266,15 @@
     private int longestStreak;
     private List<DateTime> missedDays = new();
 
+    // Tag analytics variables
+    private Dictionary<string, int>? mostUsedTags;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadMoodData();
         await LoadWordCountData();
         await LoadStreakData();
+        await LoadTagData();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -246,6 +309,11 @@
         averageWordCount = await Database.GetAverageWordCountAsync(startDate, endDate);
     }
 
+    private async Task LoadTagData()
+    {
+        mostUsedTags = await Database.GetMostUsedTagsAsync(startDate, endDate);
+    }
+
     private async Task LoadMoodData()
     {
         // Load entries (with date filter if applied)
@@ -278,6 +346,7 @@
         await LoadMoodData();
         await LoadWordCountData();
         await LoadStreakData();
+        await LoadTagData();
         await RenderPieChart();
     }
 
@@ -288,6 +357,7 @@
         await LoadMoodData();
         await LoadWordCountData();
         await LoadStreakData();
+        await LoadTagData();
         await RenderPieChart();
     }
 

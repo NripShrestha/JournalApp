@@ -2516,6 +2516,176 @@ body.dark .btn-modal-delete {
         background: #a52834;
     }
 
+/* ===== TAG ANALYTICS SECTION ===== */
+
+/* Tag Analytics Container */
+.tag-analytics {
+    margin-top: 30px;
+}
+
+/* Tag List Styles */
+.tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tag-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+    .tag-item:hover {
+        background: #e9ecef;
+        transform: translateX(4px);
+    }
+
+.tag-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.tag-count {
+    font-size: 14px;
+    font-weight: 700;
+    color: #667eea;
+    background: #e7e9fd;
+    padding: 4px 12px;
+    border-radius: 12px;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Tag Breakdown Bar Chart */
+.tag-breakdown-card {
+    min-height: 400px;
+}
+
+.tag-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bar-tag-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #495057;
+    flex: 1;
+}
+
+.bar-tag-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #667eea;
+    background: #e7e9fd;
+    padding: 2px 10px;
+    border-radius: 10px;
+    min-width: 35px;
+    text-align: center;
+}
+
+.bar-tag {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.4s ease;
+}
+
+/* Empty message styling */
+.empty-message {
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Scrollbar for tag list */
+.tag-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tag-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.tag-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+    .tag-list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+/* ===== DARK MODE - TAG ANALYTICS ===== */
+
+body.dark .tag-item {
+    background: #1e1e1e;
+    border-color: #333;
+}
+
+    body.dark .tag-item:hover {
+        background: #2a2a2a;
+    }
+
+body.dark .tag-name {
+    color: #e0e0e0;
+}
+
+body.dark .tag-count {
+    color: #a5b4fc;
+    background: #312e81;
+}
+
+body.dark .bar-tag-name {
+    color: #e0e0e0;
+}
+
+body.dark .bar-tag-count {
+    color: #a5b4fc;
+    background: #312e81;
+}
+
+body.dark .bar-tag {
+    background: linear-gradient(90deg, #818cf8 0%, #a78bfa 100%);
+}
+
+body.dark .empty-message {
+    color: #9ca3af;
+}
+
+body.dark .tag-list::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+body.dark .tag-list::-webkit-scrollbar-thumb {
+    background: #444;
+}
+
+    body.dark .tag-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tag-analytics .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tag-breakdown-card {
+        min-height: auto;
+    }
+}
 
 
 

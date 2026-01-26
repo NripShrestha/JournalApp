@@ -74,8 +74,43 @@
                     }
                 }
             }
+        public async Task<Dictionary<string, int>> GetMostUsedTagsAsync(DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                var query = @"
+            SELECT t.Name, COUNT(*) as Count
+            FROM JournalEntryTag jet
+            INNER JOIN Tag t ON jet.TagId = t.Id
+            INNER JOIN JournalEntry je ON jet.JournalEntryId = je.Id
+            WHERE (@startDate IS NULL OR je.EntryDate >= @startDate)
+              AND (@endDate IS NULL OR je.EntryDate <= @endDate)
+            GROUP BY t.Name
+            ORDER BY Count DESC";
 
-            public Task<List<Mood>> GetMoodsAsync()
+                var results = await _database.QueryAsync<TagCountResult>(
+                    query,
+                    startDate,
+                    endDate
+                );
+
+                return results.ToDictionary(r => r.Name, r => r.Count);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting most used tags: {ex.Message}");
+                return new Dictionary<string, int>();
+            }
+        }
+
+        // Helper class for query results
+        public class TagCountResult
+        {
+            public string Name { get; set; } = string.Empty;
+            public int Count { get; set; }
+        }
+
+        public Task<List<Mood>> GetMoodsAsync()
             {
                 return _database.Table<Mood>().ToListAsync();
             }
