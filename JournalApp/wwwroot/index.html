@@ -15,44 +15,26 @@
     <script src="js/quill-editor.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/dashboardCharts.js"></script>
-
 </head>
-
 <body>
-
     <div class="status-bar-safe-area"></div>
-
     <div id="app">Loading...</div>
     <script>
         window.themeManager = {
-            set: function (isDark) {
-                localStorage.setItem("theme-session", isDark ? "dark" : "light");
-            },
-            get: function () {
-                return localStorage.getItem("theme-session");
-            },
             apply: function (theme) {
                 if (theme === "dark") {
                     document.body.classList.add("dark");
                 } else {
                     document.body.classList.remove("dark");
                 }
-            },
-            clear: function () {
-                localStorage.removeItem("theme-session");
             }
         };
     </script>
-
-
     <!--<div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>-->
-
     <script src="_framework/blazor.webview.js"></script>
-
 </body>
-
 </html>

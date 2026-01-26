@@ -5,27 +5,23 @@
         <img src="images/logo.png" class="nav-logo" />
         <span class="nav-title">Journify</span>
     </div>
-
     <ul class="nav-links">
         <li>
             <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">
                 Home
             </NavLink>
         </li>
-
         <li>
             <NavLink href="/dashboard" class="nav-link">
                 Dashboard
             </NavLink>
         </li>
-
         <li>
             <NavLink href="/journal" class="nav-link">
                 Journal
             </NavLink>
         </li>
     </ul>
-
     <div class="nav-right theme-toggle">
         <button type="button"
                 class="theme-btn"
@@ -43,27 +39,24 @@
     {
         if (!firstRender) return;
 
-        var theme = await JS.InvokeAsync<string>("themeManager.get");
+        // Load theme from Preferences
+        var savedTheme = Preferences.Get("AppTheme", "light");
+        isDarkMode = savedTheme == "dark";
 
-        if (theme == "dark")
-        {
-            isDarkMode = true;
-            await JS.InvokeVoidAsync("themeManager.apply", "dark");
-        }
-        else
-        {
-            isDarkMode = false;
-            await JS.InvokeVoidAsync("themeManager.apply", "light");
-        }
-
+        // Apply the theme
+        await JS.InvokeVoidAsync("themeManager.apply", savedTheme);
         StateHasChanged();
     }
 
     private async Task ToggleTheme()
     {
         isDarkMode = !isDarkMode;
+        var theme = isDarkMode ? "dark" : "light";
 
-        await JS.InvokeVoidAsync("themeManager.set", isDarkMode ? "dark" : "light");
-        await JS.InvokeVoidAsync("themeManager.apply", isDarkMode ? "dark" : "light");
+        // Save to Preferences (persistent across app restarts)
+        Preferences.Set("AppTheme", theme);
+
+        // Apply the theme
+        await JS.InvokeVoidAsync("themeManager.apply", theme);
     }
 }
