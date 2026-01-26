@@ -2384,8 +2384,122 @@ body.dark .stat-number {
     color: #60a5fa; /* Slightly lighter blue for dark mode visibility */
 }
 
+/*Journal Confirmation*/
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
 
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
 
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+
+.modal-body {
+    margin-bottom: 24px;
+}
+
+    .modal-body p {
+        margin: 8px 0;
+    }
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-modal-cancel, .btn-modal-delete {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-modal-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+    .btn-modal-cancel:hover {
+        background: #5a6268;
+    }
+
+.btn-modal-delete {
+    background: #dc3545;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .btn-modal-delete:hover {
+        background: #c82333;
+    }
+
+/* Dark Mode */
+body.dark .modal-overlay {
+    background: rgba(0, 0, 0, 0.75); /* Darker overlay for better focus */
+}
+
+body.dark .modal-content {
+    background: #1e1e1e; /* Deep dark gray */
+    color: #f0f0f0; /* Off-white text */
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+}
+
+body.dark .modal-header h3 {
+    color: #ffffff;
+}
+
+body.dark .modal-body p {
+    color: #cccccc; /* Slightly softer gray for body text */
+}
+
+/* Button Adjustments in Dark Mode */
+body.dark .btn-modal-cancel {
+    background: #3d444b;
+    color: #e0e0e0;
+}
+
+    body.dark .btn-modal-cancel:hover {
+        background: #4e555b;
+    }
+
+body.dark .btn-modal-delete {
+    background: #bb2d3b; /* Slightly desaturated red for dark mode */
+}
+
+    body.dark .btn-modal-delete:hover {
+        background: #a52834;
+    }
 
 
 

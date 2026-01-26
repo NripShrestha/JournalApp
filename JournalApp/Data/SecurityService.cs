@@ -71,8 +71,6 @@ namespace JournalApp.Data
         }
 
         // Get security question
-       
-
         // Reset PIN after security question verification
         public async Task ResetPinAsync(string newPin)
         {
