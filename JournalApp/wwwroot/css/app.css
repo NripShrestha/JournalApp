@@ -300,7 +300,9 @@ body {
     font-size: 1.1rem;
     resize: none;
 }
-
+.action-footer{
+    padding-top: 18px;
+}
 .btn-entry {
     background-color: #3EB1FF;
     color: white;
@@ -311,6 +313,22 @@ body {
     font-size: 1.1rem;
     cursor: pointer;
 }
+/* Dark Mode for Entry Button */
+body.dark .btn-entry {
+    background-color: #0084ff; /* Slightly deeper, more vibrant blue */
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3); /* Subtle blue glow */
+}
+
+    body.dark .btn-entry:hover {
+        background-color: #339cff;
+        transform: translateY(-1px); /* Adds a nice tactile feel */
+        box-shadow: 0 6px 15px rgba(0, 132, 255, 0.4);
+    }
+
+    body.dark .btn-entry:active {
+        transform: translateY(0);
+    }
 
 /* Theme (dark/light) */
 .theme-toggle {
@@ -390,10 +408,7 @@ body.dark {
         border-color: #444;
     }
 
-    /* Buttons - Dark Mode */
-    body.dark .btn-entry {
-        background-color: #4dafff;
-    }
+    
 
     body.dark .theme-btn {
         color: #ddd;
