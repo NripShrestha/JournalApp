@@ -1,17 +1,21 @@
-﻿using System.Security.Cryptography;
+﻿//importing
+using System.Security.Cryptography;
 using System.Text;
 using JournalApp.Data;
 using JournalApp.Models;
-
+//service belongs to data/security layer
 namespace JournalApp.Data
 {
     public class SecurityService
     {
+        //doesnt use SQLite directly, uses AppDatabase as abstraction layer
         private readonly AppDatabase _db;
 
+        //run time state variables, UI can read only securityService can modify
         public bool IsUnlocked { get; private set; }
         public string CurrentUsername { get; private set; } = string.Empty;
 
+        //Depenency injection
         public SecurityService(AppDatabase db)
         {
             _db = db;

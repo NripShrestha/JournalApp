@@ -1,27 +1,31 @@
-﻿    using SQLite;
+﻿    //importing    
+    using SQLite;
     using JournalApp.Models;
-
+    //Logical grouping of database related codes
     namespace JournalApp.Data
     {
-        public class AppDatabase
+    //Creating a database service class
+    public class AppDatabase
         {
+        //SQLite connection
             private readonly SQLiteAsyncConnection _database;
-
-            public AppDatabase(string dbPath)
+        //Creating database connecting, telling SQLite where to store the database file
+        public AppDatabase(string dbPath)
             {
                 _database = new SQLiteAsyncConnection(dbPath);
             }
 
-            // Initialization
-            public async Task InitializeAsync()
+        // Initializing database, runs when app starts
+        public async Task InitializeAsync()
             {
+            //Creating tables based on models
                 await _database.CreateTableAsync<Mood>();
                 await _database.CreateTableAsync<JournalEntry>();
                 await _database.CreateTableAsync<JournalEntryMood>();
                 await _database.CreateTableAsync<Tag>();
                 await _database.CreateTableAsync<JournalEntryTag>();
                 await _database.CreateTableAsync<AppSecurity>();
-
+            //Ensures that app always have base data
                 await SeedMoodsIfEmpty();
                 await SeedTagsIfEmpty();
 
@@ -30,8 +34,8 @@
                 var tagCount = await _database.Table<Tag>().CountAsync();
             }
 
-            // Moods - Complete Seeding
-            private async Task SeedMoodsIfEmpty()
+        //Adding default moods if none exist
+        private async Task SeedMoodsIfEmpty()
             {
                 var count = await _database.Table<Mood>().CountAsync();
 

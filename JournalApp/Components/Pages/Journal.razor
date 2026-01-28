@@ -1,6 +1,9 @@
-﻿@page "/journal"
+﻿@* routing *@
+@page "/journal"
+@* imporing models and services *@
 @using JournalApp.Models
 @using JournalApp.Services
+@* dependency injection *@
 @inject JournalApp.Data.AppDatabase Database
 @inject IJSRuntime JS
 @inject SecurityService Security
@@ -531,8 +534,9 @@
         </div>
     </div>
 }
-
+@* Logic *@
 @code {
+    // UI state
     private bool showDeleteConfirmation = false;
     private JournalEntry? entryToDelete = null;
     private bool showExportPanel = false;
@@ -545,30 +549,41 @@
     private string entryContent = string.Empty;
     private string validationMessage = string.Empty;
 
-    // Track which entry we're editing
+    // Track which entry we're editing, if not null then user is editing existing entry
     private JournalEntry? editingEntry = null;
-
+    
+    // Every journal entry
     private List<JournalEntry> entries = new();
     private List<JournalEntry> filteredEntries = new();
+    
+    //These contains all tags and moods from the database
     private List<Tag> allTags = new();
     private List<Mood> allMoods = new();
 
+    //storing one primary mood to represent the entire journal
     private int selectedPrimaryMoodId;
+    //storing two extra moods or secondary moods
     private List<int> selectedSecondaryMoodIds = new();
+    //remembers which tag user entered in the journal
     private List<int> selectedTagIds = new();
 
+    //maps entry IDs to their associated tags and moods
     private Dictionary<int, List<Tag>> entryTags = new();
     private Dictionary<int, List<Mood>> entryMoods = new();
 
-    // Search & Filter variables
+    // State used to filter entries by title or content
     private string searchQuery = string.Empty;
+    // STate used to show filter panel 
     private bool showFilterPanel = false;
+    // STate to control what filters are shown
     private bool showDateFilter = true;
     private bool showMoodFilter = false;
     private bool showTagFilter = false;
 
+    //when null no date filter is applied
     private DateTime? filterStartDate = null;
     private DateTime? filterEndDate = null;
+    //Which moods/tags the user selected to filter by
     private List<int> filterMoodIds = new();
     private List<int> filterTagIds = new();
 
@@ -579,7 +594,9 @@
     // Pagination variables
     private int currentPage = 1;
     private int itemsPerPage = 3;
+    //Calculates, how many pages are needed based on filtered entries, using ceiling soo left over entries create a new page
     private int totalPages => filteredEntries.Count == 0 ? 1 : (int)Math.Ceiling((double)filteredEntries.Count / itemsPerPage);
+    //Display entries for the current page, Skip ignores earlier entries and Take grabs what fits in the current page
     private List<JournalEntry> paginatedEntries => filteredEntries
         .Skip((currentPage - 1) * itemsPerPage)
         .Take(itemsPerPage)
